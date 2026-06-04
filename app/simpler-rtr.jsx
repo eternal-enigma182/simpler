@@ -3,57 +3,70 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 
 /* ══════════════════════════════════════════════════
-   DESIGN TOKENS — Dark Premium (inspired by Ringkes)
+   DESIGN TOKENS — Color Palette #04
+   #95B1EE (biru muda) · #FFFDF5 (putih krem) · #E7F1A8 (hijau muda) · #364C84 (biru tua)
 ══════════════════════════════════════════════════ */
 const C = {
-  // Backgrounds
-  bg:       "#0A0F0A",
-  bg2:      "#111711",
-  bg3:      "#161D16",
-  surface:  "#1C251C",
-  surface2: "#222D22",
-  card:     "#1A221A",
+  // Backgrounds — berbasis putih krem
+  bg:       "#FFFDF5",
+  bg2:      "#F5F3E8",
+  bg3:      "#EEECe0",
+  surface:  "#FFFFFF",
+  surface2: "#F0EFE5",
+  card:     "#FFFFFF",
 
   // Borders
-  line:     "rgba(255,255,255,0.07)",
-  line2:    "rgba(255,255,255,0.12)",
+  line:     "rgba(54,76,132,0.1)",
+  line2:    "rgba(54,76,132,0.2)",
 
-  // Text
-  white:    "#F0F4F0",
-  light:    "#C8D4C8",
-  soft:     "#8FA88F",
-  muted:    "#576857",
+  // Text — berbasis biru tua
+  white:    "#FFFFFF",
+  light:    "#364C84",   // biru tua utama
+  soft:     "#5A6E9E",   // biru tua medium
+  muted:    "#8A98BA",   // biru tua muted
 
-  // Accent — Ocean Green (maritime)
-  green:    "#3DD68C",
-  greenD:   "#2AAF71",
-  greenL:   "rgba(61,214,140,0.12)",
-  greenM:   "rgba(61,214,140,0.2)",
+  // Accent utama — biru tua
+  blue:     "#364C84",
+  blueD:    "#253660",
+  blueL:    "rgba(54,76,132,0.08)",
+  blueM:    "rgba(54,76,132,0.15)",
 
-  // Category colors
-  teal:     "#2DD4BF",
-  tealL:    "rgba(45,212,191,0.12)",
-  amber:    "#F59E0B",
-  amberL:   "rgba(245,158,11,0.12)",
-  rose:     "#F87171",
-  roseL:    "rgba(248,113,113,0.12)",
-  violet:   "#A78BFA",
-  violetL:  "rgba(167,139,250,0.12)",
-  blue:     "#60A5FA",
-  blueL:    "rgba(96,165,250,0.12)",
+  // Biru muda
+  sky:      "#95B1EE",
+  skyL:     "rgba(149,177,238,0.15)",
+  skyM:     "rgba(149,177,238,0.25)",
+
+  // Hijau muda (aksen sukses/selesai)
+  lime:     "#7BA02A",   // hijau gelap untuk teks
+  limeL:    "rgba(231,241,168,0.6)",
+  limeB:    "#E7F1A8",   // hijau muda asli dari palette
+
+  // Status colors
+  amber:    "#B07D2A",
+  amberL:   "rgba(255,200,80,0.15)",
+  rose:     "#C0392B",
+  roseL:    "rgba(192,57,43,0.1)",
+  violet:   "#5B4A9E",
+  violetL:  "rgba(91,74,158,0.1)",
+
+  // Kategori — semua berbasis palette
+  teal:     "#364C84",
+  tealL:    "rgba(149,177,238,0.2)",
+  gold:     "#7A6520",
+  goldL:    "rgba(231,241,168,0.5)",
 };
 
 const KS = {
-  "RZ KAW":  { c:C.teal,   l:C.tealL,   icon:"🌊", label:"Rencana Zonasi Kawasan Antarwilayah" },
-  "RTR KSN": { c:C.amber,  l:C.amberL,  icon:"📍", label:"RTR Kawasan Strategis Nasional" },
-  "RTRWP":   { c:C.rose,   l:C.roseL,   icon:"🏛️", label:"RTR Wilayah Provinsi" },
-  "RTRWN":   { c:C.violet, l:C.violetL, icon:"🗺️", label:"RTR Wilayah Nasional" },
+  "RZ KAW":  { c:"#364C84", l:"rgba(149,177,238,0.2)", icon:"🌊", label:"Rencana Zonasi Kawasan Antarwilayah" },
+  "RTR KSN": { c:"#5B4A9E", l:"rgba(149,177,238,0.15)", icon:"📍", label:"RTR Kawasan Strategis Nasional" },
+  "RTRWP":   { c:"#1E6B5A", l:"rgba(231,241,168,0.5)", icon:"🏛️", label:"RTR Wilayah Provinsi" },
+  "RTRWN":   { c:"#253660", l:"rgba(54,76,132,0.12)", icon:"🗺️", label:"RTR Wilayah Nasional" },
 };
 
 const ST = {
-  Selesai: { c:C.green,  l:C.greenL,  dot:"#3DD68C", ic:"✓" },
-  Proses:  { c:C.amber,  l:C.amberL,  dot:"#F59E0B", ic:"◑" },
-  Belum:   { c:C.muted,  l:"rgba(87,104,87,0.15)", dot:"#576857", ic:"○" },
+  Selesai: { c:"#2D7A3A", l:"rgba(231,241,168,0.6)", dot:"#7BA02A", ic:"✓" },
+  Proses:  { c:"#8A6500", l:"rgba(255,200,80,0.15)", dot:"#C8A000", ic:"◑" },
+  Belum:   { c:"#8A98BA", l:"rgba(54,76,132,0.06)", dot:"#B0BАДА", ic:"○" },
 };
 
 const KATEGORI = ["RZ KAW","RTR KSN","RTRWP","RTRWN"];
@@ -103,7 +116,6 @@ const GS = () => (
     @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
     .fade-in{animation:fadeIn .3s ease both;}
     .slide-up{animation:slideUp .4s cubic-bezier(.16,1,.3,1) both;}
@@ -116,7 +128,7 @@ const GS = () => (
       height:52px;padding:0 16px;
       display:flex;align-items:center;justify-content:space-between;
       border-bottom:1px solid ${C.line};
-      background:${C.bg};
+      background:rgba(255,253,245,0.95);
       position:sticky;top:0;z-index:40;
       backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
     }
@@ -125,7 +137,7 @@ const GS = () => (
     /* ── NAV BAR ── */
     .nav-bar{
       position:fixed;bottom:0;left:0;right:0;
-      background:rgba(10,15,10,0.92);
+      background:rgba(255,253,245,0.96);
       backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
       border-top:1px solid ${C.line};
       display:flex;align-items:center;justify-content:space-around;
@@ -138,7 +150,7 @@ const GS = () => (
       transition:all .15s;-webkit-tap-highlight-color:transparent;
       min-width:64px;
     }
-    .nav-item.on{background:${C.greenL};}
+    .nav-item.on{background:${C.skyL};}
     .nav-icon{font-size:20px;transition:transform .15s;}
     .nav-item.on .nav-icon{transform:scale(1.1);}
     .nav-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
@@ -153,40 +165,40 @@ const GS = () => (
     /* ── CARDS ── */
     .card{
       background:${C.card};border:1px solid ${C.line};border-radius:14px;
-      overflow:hidden;
+      overflow:hidden;box-shadow:0 1px 3px rgba(54,76,132,0.06);
     }
-    .card-hover{cursor:pointer;transition:border-color .15s,background .15s;-webkit-tap-highlight-color:transparent;}
-    .card-hover:hover{border-color:${C.line2};background:${C.surface};}
-    .card-hover:active{background:${C.surface2};}
+    .card-hover{cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
+    .card-hover:hover{border-color:${C.sky};box-shadow:0 2px 10px rgba(54,76,132,0.1);}
+    .card-hover:active{background:${C.bg2};}
 
     /* ── ENTRY CARD ── */
     .entry-card{
       background:${C.card};border:1px solid ${C.line};border-radius:14px;
       padding:16px;cursor:pointer;
-      transition:border-color .15s,background .15s,transform .15s;
+      box-shadow:0 1px 3px rgba(54,76,132,0.06);
+      transition:border-color .15s,box-shadow .15s,transform .15s;
       -webkit-tap-highlight-color:transparent;
     }
-    .entry-card:hover{border-color:${C.line2};background:${C.surface};}
-    .entry-card:active{transform:scale(.99);background:${C.surface2};}
+    .entry-card:hover{border-color:${C.sky};box-shadow:0 3px 12px rgba(54,76,132,0.12);}
+    .entry-card:active{transform:scale(.99);}
 
     /* ── SHEET ── */
     .sheet{
       position:fixed;bottom:0;left:0;right:0;
-      background:${C.bg2};border-top:1px solid ${C.line2};
+      background:${C.bg};border-top:1px solid ${C.line};
       border-radius:20px 20px 0 0;
       max-height:92vh;display:flex;flex-direction:column;
-      box-shadow:0 -20px 60px rgba(0,0,0,0.5);
+      box-shadow:0 -8px 40px rgba(54,76,132,0.15);
       animation:sheetUp .3s cubic-bezier(.16,1,.3,1) both;
       z-index:100;
     }
     .sheet-handle{width:32px;height:3px;border-radius:2px;background:${C.line2};margin:10px auto 0;flex-shrink:0;}
     .sheet-scroll{overflow-y:auto;flex:1;}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;animation:fadeIn .2s ease;}
+    .overlay{position:fixed;inset:0;background:rgba(54,76,132,0.3);z-index:99;animation:fadeIn .2s ease;}
 
     /* ── PROGRESS BAR ── */
     .pbar-wrap{position:relative;height:6px;background:${C.line};border-radius:99px;overflow:hidden;}
     .pbar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);}
-    .pbar-glow{position:absolute;right:0;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;box-shadow:0 0 8px 2px currentColor;}
 
     /* ── CIRCULAR PROGRESS ── */
     .cprog{transform:rotate(-90deg);}
@@ -203,11 +215,11 @@ const GS = () => (
     /* ── INPUTS ── */
     .field{
       width:100%;padding:12px 14px;
-      background:${C.bg3};border:1px solid ${C.line};border-radius:10px;
-      font-size:15px;color:${C.white};outline:none;
+      background:${C.bg2};border:1.5px solid ${C.line};border-radius:10px;
+      font-size:15px;color:${C.light};outline:none;
       transition:border-color .15s;-webkit-appearance:none;
     }
-    .field:focus{border-color:${C.green};}
+    .field:focus{border-color:${C.sky};}
     .field::placeholder{color:${C.muted};}
     select.field{cursor:pointer;}
 
@@ -215,36 +227,36 @@ const GS = () => (
     .btn-primary{
       display:flex;align-items:center;justify-content:center;gap:8px;
       width:100%;padding:13px;border:none;border-radius:12px;
-      background:${C.green};color:#0A0F0A;font-size:14px;font-weight:800;
+      background:${C.blue};color:#FFFDF5;font-size:14px;font-weight:800;
       cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;
     }
-    .btn-primary:hover{background:${C.greenD};}
+    .btn-primary:hover{background:${C.blueD};}
     .btn-primary:active{opacity:.85;transform:scale(.99);}
     .btn-ghost{
       display:flex;align-items:center;justify-content:center;gap:8px;
-      padding:12px 20px;border:1px solid ${C.line2};border-radius:12px;
+      padding:12px 20px;border:1.5px solid ${C.line2};border-radius:12px;
       background:transparent;color:${C.soft};font-size:14px;font-weight:600;
       cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;
     }
-    .btn-ghost:hover{border-color:${C.soft};color:${C.light};}
+    .btn-ghost:hover{border-color:${C.sky};color:${C.blue};}
     .btn-icon{
       display:flex;align-items:center;justify-content:center;
       width:36px;height:36px;border-radius:10px;border:none;
-      background:${C.surface};cursor:pointer;font-size:16px;
+      background:${C.bg2};cursor:pointer;font-size:16px;
       -webkit-tap-highlight-color:transparent;transition:background .12s;
       color:${C.soft};
     }
-    .btn-icon:hover{background:${C.surface2};}
+    .btn-icon:hover{background:${C.skyL};}
 
     /* ── PILL FILTER ── */
     .pill{
       padding:7px 14px;border-radius:99px;font-size:11px;font-weight:700;
-      border:1px solid ${C.line};background:transparent;color:${C.soft};
+      border:1.5px solid ${C.line};background:${C.surface};color:${C.soft};
       cursor:pointer;white-space:nowrap;transition:all .15s;letter-spacing:.03em;
       -webkit-tap-highlight-color:transparent;
     }
-    .pill.on{background:${C.green};border-color:${C.green};color:#0A0F0A;}
-    .pill:hover:not(.on){border-color:${C.line2};color:${C.light};}
+    .pill.on{background:${C.blue};border-color:${C.blue};color:#FFFDF5;}
+    .pill:hover:not(.on){border-color:${C.sky};color:${C.blue};}
 
     /* ── DIVIDER ── */
     .divider{height:1px;background:${C.line};margin:0;}
@@ -255,11 +267,11 @@ const GS = () => (
       cursor:pointer;transition:background .12s;
       -webkit-tap-highlight-color:transparent;
     }
-    .t-row:hover{background:${C.surface};}
+    .t-row:hover{background:${C.bg2};}
     .t-row+.t-row{border-top:1px solid ${C.line};}
 
     /* ── SPINNER ── */
-    .spinner{width:24px;height:24px;border:2px solid ${C.line};border-top-color:${C.green};border-radius:50%;animation:spin .7s linear infinite;}
+    .spinner{width:24px;height:24px;border:2px solid ${C.line};border-top-color:${C.sky};border-radius:50%;animation:spin .7s linear infinite;}
 
     /* ── GRID ── */
     .card-grid{display:grid;gap:10px;grid-template-columns:1fr;}
@@ -393,8 +405,8 @@ function NavBar({active, onTab}){
         const on = active===n.id;
         return(
           <div key={n.id} className={"nav-item"+(on?" on":"")} onClick={()=>onTab(n.id)}>
-            <div className="nav-icon" style={{color:on?C.green:C.muted,fontFamily:"monospace",fontWeight:700,fontSize:18}}>{n.icon}</div>
-            <span className="nav-label" style={{color:on?C.green:C.muted}}>{n.label}</span>
+            <div className="nav-icon" style={{color:on?C.blue:C.muted,fontFamily:"monospace",fontWeight:700,fontSize:18}}>{n.icon}</div>
+            <span className="nav-label" style={{color:on?C.blue:C.muted}}>{n.label}</span>
           </div>
         );
       })}
@@ -416,8 +428,8 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
           )}
           <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.white,letterSpacing:".02em"}}>{title}</span>
         </div>
-        {rightBtn&&rightBtn}
-      </div>
+      {rightBtn&&rightBtn}
+    </div>
       <div className={"content"+(hideNav?" no-nav":"")}>
         {children}
       </div>
@@ -651,32 +663,32 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:20}}>
 
       {/* Hero */}
-      <div style={{background:C.surface,border:"1px solid "+C.line,borderRadius:18,padding:"24px",position:"relative",overflow:"hidden"}}>
+      <div style={{background:"linear-gradient(135deg,#364C84 0%,#253660 100%)",border:"none",borderRadius:18,padding:"24px",position:"relative",overflow:"hidden"}}>
         {/* decorative */}
-        <div style={{position:"absolute",right:-60,top:-60,width:200,height:200,borderRadius:"50%",background:C.greenL,pointerEvents:"none"}}/>
-        <div style={{position:"absolute",right:20,bottom:-80,width:160,height:160,borderRadius:"50%",background:"rgba(61,214,140,0.04)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",right:-60,top:-60,width:200,height:200,borderRadius:"50%",background:"rgba(149,177,238,0.15)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",right:20,bottom:-80,width:160,height:160,borderRadius:"50%",background:"rgba(231,241,168,0.08)",pointerEvents:"none"}}/>
 
         <div style={{position:"relative"}}>
-          <div className="label" style={{marginBottom:8,color:C.green}}>Sistem Informasi Monitoring</div>
-          <div style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(28px,6vw,40px)",fontWeight:800,color:C.white,lineHeight:.95,letterSpacing:"-.02em"}}>SIMPLER</div>
-          <div style={{fontSize:13,color:C.soft,marginTop:6,marginBottom:20}}>Penyelesaian Penataan Ruang Laut</div>
+          <div style={{fontSize:9,fontWeight:800,color:"rgba(231,241,168,0.8)",letterSpacing:".15em",textTransform:"uppercase",marginBottom:8}}>Sistem Informasi Monitoring</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(28px,6vw,40px)",fontWeight:800,color:"#FFFDF5",lineHeight:.95,letterSpacing:"-.02em"}}>SIMPLER</div>
+          <div style={{fontSize:13,color:"rgba(149,177,238,0.85)",marginTop:6,marginBottom:20}}>Penyelesaian Penataan Ruang Laut</div>
 
           {/* Big progress */}
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{position:"relative",flexShrink:0}}>
-              <CircProgress p={pct} color={C.green} size={80} stroke={6}/>
+              <CircProgress p={pct} color="#E7F1A8" size={80} stroke={6}/>
               <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
                 <div style={{textAlign:"center"}}>
-                  <div style={{fontSize:17,fontWeight:800,color:C.green,lineHeight:1}}>{pct}%</div>
+                  <div style={{fontSize:17,fontWeight:800,color:"#E7F1A8",lineHeight:1}}>{pct}%</div>
                 </div>
               </div>
             </div>
             <div>
-              <div style={{fontSize:28,fontWeight:800,color:C.white,lineHeight:1}}>{totalDone}<span style={{fontSize:14,color:C.muted,fontWeight:500}}>/{data.length}</span></div>
-              <div style={{fontSize:12,color:C.soft,marginTop:3}}>entri telah ditetapkan</div>
+              <div style={{fontSize:28,fontWeight:800,color:"#FFFDF5",lineHeight:1}}>{totalDone}<span style={{fontSize:14,color:"rgba(149,177,238,0.7)",fontWeight:500}}>/{data.length}</span></div>
+              <div style={{fontSize:12,color:"rgba(149,177,238,0.8)",marginTop:3}}>entri telah ditetapkan</div>
               <div style={{display:"flex",gap:12,marginTop:8}}>
-                <span style={{fontSize:11,color:C.amber,fontWeight:700}}>⏳ {totalProses} proses</span>
-                <span style={{fontSize:11,color:C.muted,fontWeight:700}}>○ {data.length-totalDone-totalProses} belum</span>
+                <span style={{fontSize:11,color:"#E7F1A8",fontWeight:700}}>⏳ {totalProses} proses</span>
+                <span style={{fontSize:11,color:"rgba(149,177,238,0.6)",fontWeight:700}}>○ {data.length-totalDone-totalProses} belum</span>
               </div>
             </div>
           </div>
@@ -719,7 +731,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         <div>
           <div className="sec-hdr">
             <div className="label">Terbaru Ditetapkan</div>
-            <button onClick={onGoDb} style={{background:"none",border:"none",color:C.green,fontSize:12,fontWeight:700,cursor:"pointer"}}>Semua →</button>
+            <button onClick={onGoDb} style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer"}}>Semua →</button>
           </div>
           <div className="card">
             {recent.map((e,i)=>{
@@ -1021,7 +1033,7 @@ function HukumTab(){
           <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari peraturan..." style={{paddingLeft:36}}/>
         </div>
         <button onClick={()=>setAdding(true)}
-          style={{height:46,padding:"0 16px",background:C.green,color:C.bg,border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0}}>+</button>
+          style={{height:46,padding:"0 16px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0}}>+</button>
       </div>
 
       <div className="label">{hukum.length} peraturan</div>
@@ -1111,7 +1123,7 @@ export default function App(){
           <div style={{display:"flex",gap:8}}>
             <button className="btn-icon" onClick={()=>exportCSV(data)} title="Export CSV" style={{fontSize:14}}>↓ CSV</button>
             <button onClick={()=>setAdding(true)}
-              style={{height:36,padding:"0 14px",background:C.green,color:C.bg,border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer"}}>+ Tambah</button>
+              style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer"}}>+ Tambah</button>
           </div>
         }>
         {/* Search + Filter */}
@@ -1124,7 +1136,7 @@ export default function App(){
             {["Semua",...KATEGORI].map(k=>{
               const on=dbKat===k;const ks=KS[k];
               return <button key={k} className={"pill"+(on?" on":"")} onClick={()=>setDbKat(k)}
-                style={on&&ks?{background:ks.c,borderColor:ks.c,color:C.bg}:{}}>{k}</button>;
+                style={on&&ks?{background:ks.c,borderColor:ks.c,color:"#FFFDF5"}:{}}>{k}</button>;
             })}
           </div>
           <div className="scroll-x">
@@ -1181,7 +1193,7 @@ export default function App(){
     <>
       <GS/>
       <AppShell title={titles[tab]} tab={tab} onTab={t=>{setTab(t);setStatusKat(null);}}
-        rightBtn={<button className="btn-icon" onClick={()=>setShowDb(true)} style={{fontSize:16}}>⚙</button>}>
+        rightBtn={<button className="btn-icon" onClick={()=>setShowDb(true)} style={{fontSize:16,color:C.blue}}>⚙</button>}>
         {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={()=>setShowDb(true)}/>}
         {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
         {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
