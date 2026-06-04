@@ -1074,6 +1074,129 @@ function HukumTab(){
 }
 
 /* ══════════════════════════════════════════════════
+   ABOUT TAB
+══════════════════════════════════════════════════ */
+function AboutTab(){
+  const menus=[
+    {icon:"📊",title:"Status RTR",desc:"Dashboard utama yang memuat informasi progres penyelesaian RTRWN, RTR KSN, RZ KAW, dan RTRWP. Pengguna dapat melihat status penyelesaian masing-masing rencana sesuai dengan tahapannya."},
+    {icon:"📄",title:"Produk Hukum",desc:"Daftar Rencana Tata Ruang Laut yang telah mendapatkan penetapan baik berupa PP, Perpres, maupun Perda. Pengguna dapat mengakses file produk RTR melalui tautan yang tersedia."},
+    {icon:"⚖️",title:"Dasar Hukum",desc:"Daftar peraturan perundangan yang terkait dengan perencanaan ruang laut. Pengguna dapat mengakses file peraturan melalui tautan yang tersedia pada menu ini."},
+  ];
+  return(
+    <div className="inner" style={{display:"flex",flexDirection:"column",gap:16}}>
+      <div className="card" style={{padding:"28px 20px",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🌊</div>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,color:C.blue,letterSpacing:"-.01em"}}>SIMPLER</div>
+        <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
+        <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
+          <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+        </div>
+      </div>
+
+      <div className="card" style={{padding:"16px"}}>
+        <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
+        <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+        </div>
+        <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
+          Aplikasi SIMPLER terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
+        </div>
+      </div>
+
+      <div className="label">Fitur Utama</div>
+      {menus.map((m,i)=>(
+        <div key={i} className="card" style={{padding:"16px"}}>
+          <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+            <div style={{width:40,height:40,borderRadius:10,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{m.icon}</div>
+            <div>
+              <div style={{fontSize:14,fontWeight:800,color:C.light,marginBottom:5}}>Menu {m.title}</div>
+              <div style={{fontSize:13,color:C.soft,lineHeight:1.7}}>{m.desc}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div className="card" style={{padding:"16px"}}>
+        <div className="label" style={{marginBottom:10}}>Cakupan Monitoring</div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {[
+            {k:"RZ KAW",target:"20 kawasan laut"},
+            {k:"RTR KSN",target:"28 kawasan"},
+            {k:"RTRWP",target:"38 provinsi"},
+            {k:"RTRWN",target:"1 dokumen"},
+          ].map(({k,target})=>{
+            const ks=KS[k];
+            return(
+              <div key={k} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 12px",background:C.bg,borderRadius:10}}>
+                <div style={{fontSize:22,flexShrink:0}}>{ks.icon}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,fontWeight:700,color:ks.c}}>{k}</div>
+                  <div style={{fontSize:11,color:C.soft,marginTop:1}}>{ks.label}</div>
+                </div>
+                <div style={{fontSize:11,fontWeight:700,color:C.muted,flexShrink:0}}>{target}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
+        SIMPLER v2.0 · © 2025 Deputi SDM Maritim
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   LOGIN SHEET
+══════════════════════════════════════════════════ */
+function LoginSheet({onLogin, onClose}){
+  const [email,setEmail]=useState("");
+  const [pass,setPass]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState("");
+
+  async function handleLogin(){
+    if(!email||!pass) return;
+    setLoading(true);setErr("");
+    try{
+      const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+      if(error) throw error;
+      onLogin(data.user);
+      onClose();
+    }catch(e){
+      setErr("Email atau password salah.");
+    }finally{setLoading(false);}
+  }
+
+  return(
+    <Sheet onClose={onClose} title="Login Admin">
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{padding:"12px 14px",background:C.blueL,borderRadius:10,fontSize:13,color:C.blue,lineHeight:1.5}}>
+          🔐 Halaman ini khusus untuk admin yang berwenang mengedit data SIMPLER.
+        </div>
+        <div>
+          <div className="label" style={{marginBottom:6}}>Email</div>
+          <input value={email} onChange={e=>setEmail(e.target.value)} className="field" placeholder="admin@email.com" type="email"/>
+        </div>
+        <div>
+          <div className="label" style={{marginBottom:6}}>Password</div>
+          <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} className="field" placeholder="••••••••" type="password"/>
+        </div>
+        {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8}}>⚠️ {err}</div>}
+      </div>
+      <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
+        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
+        <button className="btn-primary" onClick={handleLogin} style={{flex:2,opacity:loading?.7:1}}>
+          {loading?"Masuk...":"🔐 Masuk"}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+/* ══════════════════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════════════════ */
 export default function App(){
@@ -1088,6 +1211,15 @@ export default function App(){
   const [dbSearch,setDbSearch]=useState("");
   const [dbKat,setDbKat]=useState("Semua");
   const [dbSt,setDbSt]=useState("Semua");
+  const [user,setUser]=useState(null);
+  const [showLogin,setShowLogin]=useState(false);
+  const isAdmin=!!user;
+
+  useEffect(()=>{
+    supabase.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
+    return()=>subscription.unsubscribe();
+  },[]);
 
   const fetchData=useCallback(async()=>{
     setLoading(true);
@@ -1105,6 +1237,7 @@ export default function App(){
 
   function updateEntry(u){setData(p=>p.map(e=>e.id===u.id?u:e));}
   function addEntry(n){setData(p=>[...p,n]);fetchData();}
+  async function handleLogout(){await supabase.auth.signOut();setUser(null);setShowDb(false);}
 
   const filteredDb=useMemo(()=>data.filter(d=>{
     const mq=d.nama.toLowerCase().includes(dbSearch.toLowerCase())||d.kategori.toLowerCase().includes(dbSearch.toLowerCase());
@@ -1114,70 +1247,44 @@ export default function App(){
     return mq&&mk&&ms;
   }),[data,dbSearch,dbKat,dbSt]);
 
-  // DASHBOARD VIEW
-  if(showDb) return(
+  if(showDb&&isAdmin) return(
     <>
       <GS/>
-      <AppShell title="Dashboard" hideNav onBack={()=>setShowDb(false)}
+      <AppShell title="Dashboard Admin" hideNav onBack={()=>setShowDb(false)}
         rightBtn={
-          <div style={{display:"flex",gap:8}}>
-            <button className="btn-icon" onClick={()=>exportCSV(data)} title="Export CSV" style={{fontSize:14}}>↓ CSV</button>
-            <button onClick={()=>setAdding(true)}
-              style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer"}}>+ Tambah</button>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <button className="btn-icon" onClick={()=>exportCSV(data)} style={{fontSize:14,color:C.blue}}>↓</button>
+            <button onClick={()=>setAdding(true)} style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer"}}>+ Tambah</button>
+            <button onClick={handleLogout} style={{height:36,padding:"0 12px",background:C.roseL,color:C.rose,border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer"}}>Keluar</button>
           </div>
         }>
-        {/* Search + Filter */}
         <div style={{background:C.bg,borderBottom:"1px solid "+C.line,padding:"12px 16px",position:"sticky",top:52,zIndex:30}}>
           <div style={{position:"relative",marginBottom:10}}>
             <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
             <input value={dbSearch} onChange={e=>setDbSearch(e.target.value)} className="field" placeholder="Cari kawasan..." style={{paddingLeft:36}}/>
           </div>
           <div className="scroll-x" style={{marginBottom:8}}>
-            {["Semua",...KATEGORI].map(k=>{
-              const on=dbKat===k;const ks=KS[k];
-              return <button key={k} className={"pill"+(on?" on":"")} onClick={()=>setDbKat(k)}
-                style={on&&ks?{background:ks.c,borderColor:ks.c,color:"#FFFDF5"}:{}}>{k}</button>;
-            })}
+            {["Semua",...KATEGORI].map(k=>{const on=dbKat===k;const ks=KS[k];return <button key={k} className={"pill"+(on?" on":"")} onClick={()=>setDbKat(k)} style={on&&ks?{background:ks.c,borderColor:ks.c,color:"#FFFDF5"}:{}}>{k}</button>;})}
           </div>
           <div className="scroll-x">
-            {["Semua","✓ Selesai","◑ Proses","○ Belum"].map((s,i)=>{
-              const val=["Semua","Selesai","Proses","Belum"][i];
-              const on=dbSt===val;
-              return <button key={val} className={"pill"+(on?" on":"")} onClick={()=>setDbSt(val)}>{s}</button>;
-            })}
+            {["Semua","✓ Selesai","◑ Proses","○ Belum"].map((s,i)=>{const val=["Semua","Selesai","Proses","Belum"][i];const on=dbSt===val;return <button key={val} className={"pill"+(on?" on":"")} onClick={()=>setDbSt(val)}>{s}</button>;})}
             <span style={{marginLeft:6,fontSize:11,color:C.muted,alignSelf:"center",whiteSpace:"nowrap",fontWeight:600}}>{filteredDb.length} entri</span>
           </div>
         </div>
-
-        {/* Grid */}
         <div className="inner">
           {loading?<Spinner/>:(
             <div className="card-grid">
-              {filteredDb.map(e=>{
-                const p=calcP(e);const ks=KS[e.kategori];
-                const next=e.steps.find(s=>s.status!=="Selesai");
-                return(
-                  <div key={e.id} className="entry-card" onClick={()=>setDetail(e)}>
-                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
-                      <div style={{flex:1,minWidth:0}}>
-                        <KatChip k={e.kategori}/>
-                        <div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div>
-                      </div>
-                      <div style={{position:"relative",flexShrink:0}}>
-                        <CircProgress p={p} color={ks.c} size={40} stroke={3}/>
-                        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <span style={{fontSize:8,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span>
-                        </div>
-                      </div>
-                    </div>
-                    <StepDots steps={e.steps} color={ks.c}/>
-                    {next&&<div style={{marginTop:6,fontSize:10,color:C.muted}}>⏭ {next.nama}</div>}
+              {filteredDb.map(e=>{const p=calcP(e);const ks=KS[e.kategori];const next=e.steps.find(s=>s.status!=="Selesai");return(
+                <div key={e.id} className="entry-card" onClick={()=>setDetail(e)}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
+                    <div style={{flex:1,minWidth:0}}><KatChip k={e.kategori}/><div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div></div>
+                    <div style={{position:"relative",flexShrink:0}}><CircProgress p={p} color={ks.c} size={40} stroke={3}/><div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:8,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span></div></div>
                   </div>
-                );
-              })}
-              {filteredDb.length===0&&!loading&&(
-                <div style={{gridColumn:"1/-1"}}><Empty/></div>
-              )}
+                  <StepDots steps={e.steps} color={ks.c}/>
+                  {next&&<div style={{marginTop:6,fontSize:10,color:C.muted}}>⏭ {next.nama}</div>}
+                </div>
+              );})}
+              {filteredDb.length===0&&!loading&&<div style={{gridColumn:"1/-1"}}><Empty/></div>}
             </div>
           )}
         </div>
@@ -1188,17 +1295,49 @@ export default function App(){
     </>
   );
 
-  const titles={home:"SIMPLER",status:"Status RTR",produk:"Produk Hukum",hukum:"Dasar Hukum"};
+  const NAV5=[
+    {id:"home",icon:"⊙",label:"Beranda"},
+    {id:"status",icon:"◫",label:"Status"},
+    {id:"produk",icon:"◈",label:"Produk"},
+    {id:"hukum",icon:"◉",label:"Hukum"},
+    {id:"tentang",icon:"ℹ",label:"Tentang"},
+  ];
+  const titles={home:"SIMPLER",status:"Status RTR",produk:"Produk Hukum",hukum:"Dasar Hukum",tentang:"Tentang SIMPLER"};
+  const rightBtn=isAdmin
+    ?<div style={{display:"flex",gap:6,alignItems:"center"}}>
+        <button className="btn-icon" onClick={()=>setShowDb(true)} style={{fontSize:14,color:C.blue,background:C.blueL,fontWeight:700}}>⚙</button>
+        <button onClick={handleLogout} style={{height:32,padding:"0 10px",background:C.roseL,color:C.rose,border:"none",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>Keluar</button>
+      </div>
+    :<button onClick={()=>setShowLogin(true)} style={{height:32,padding:"0 12px",background:C.blueL,color:C.blue,border:"1px solid "+C.line2,borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+        🔐 Admin
+      </button>;
+
   return(
     <>
       <GS/>
-      <AppShell title={titles[tab]} tab={tab} onTab={t=>{setTab(t);setStatusKat(null);}}
-        rightBtn={<button className="btn-icon" onClick={()=>setShowDb(true)} style={{fontSize:16,color:C.blue}}>⚙</button>}>
-        {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={()=>setShowDb(true)}/>}
-        {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
-        {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
-        {tab==="hukum"&&<HukumTab/>}
-      </AppShell>
+      <div className="app-wrap fade-in">
+        <div style={{height:"env(safe-area-inset-top,0px)",background:C.bg}}/>
+        <div className="topbar">
+          <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{titles[tab]}</span>
+          {rightBtn}
+        </div>
+        <div className="content">
+          {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
+          {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
+          {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
+          {tab==="hukum"&&<HukumTab/>}
+          {tab==="tentang"&&<AboutTab/>}
+        </div>
+        <div className="nav-bar">
+          {NAV5.map(n=>{const on=tab===n.id;return(
+            <div key={n.id} className={"nav-item"+(on?" on":"")} onClick={()=>{setTab(n.id);setStatusKat(null);}}>
+              <div className="nav-icon" style={{color:on?C.blue:C.muted,fontFamily:"monospace",fontWeight:700,fontSize:18}}>{n.icon}</div>
+              <span className="nav-label" style={{color:on?C.blue:C.muted}}>{n.label}</span>
+            </div>
+          );})}
+        </div>
+      </div>
+      {showLogin&&<LoginSheet onLogin={u=>setUser(u)} onClose={()=>setShowLogin(false)}/>}
     </>
   );
 }
