@@ -904,7 +904,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
           <span style={{fontSize:18}}>🏛️</span>
           <div>
             <div style={{fontSize:11,fontWeight:700,color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Pangan</div>
           </div>
         </div>
       </div>
@@ -1225,7 +1225,7 @@ function AboutTab(){
         <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
           <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Pangan</div>
         </div>
       </div>
 
