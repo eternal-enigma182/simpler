@@ -376,7 +376,7 @@ function Sheet({children, onClose, title, subtitle}){
         {(title||subtitle)&&(
           <div style={{padding:"16px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexShrink:0}}>
             <div>
-              {title&&<div style={{fontSize:17,fontWeight:800,color:C.white}}>{title}</div>}
+              {title&&<div style={{fontSize:17,fontWeight:800,color:C.light}}>{title}</div>}
               {subtitle&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>{subtitle}</div>}
             </div>
             <button className="btn-icon" onClick={onClose} style={{marginTop:-2}}>✕</button>
@@ -424,12 +424,12 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
       <div className="topbar">
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           {onBack&&(
-            <button className="btn-icon" onClick={onBack} style={{fontSize:18}}>←</button>
+            <button className="btn-icon" onClick={onBack} style={{fontSize:18,color:C.blue,background:C.blueL}}>←</button>
           )}
-          <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.white,letterSpacing:".02em"}}>{title}</span>
+          <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{title}</span>
         </div>
-      {rightBtn&&rightBtn}
-    </div>
+        {rightBtn&&rightBtn}
+      </div>
       <div className={"content"+(hideNav?" no-nav":"")}>
         {children}
       </div>
@@ -450,7 +450,7 @@ function DetailSheet({entry, onEdit, onClose}){
       {/* Hero */}
       <div style={{padding:"20px 20px 0"}}>
         <KatChip k={entry.kategori} size="lg"/>
-        <div style={{fontSize:22,fontWeight:800,color:C.white,marginTop:10,lineHeight:1.2}}>{entry.nama}</div>
+        <div style={{fontSize:22,fontWeight:800,color:C.light,marginTop:10,lineHeight:1.2}}>{entry.nama}</div>
 
         {/* Circular progress + stats */}
         <div style={{display:"flex",alignItems:"center",gap:20,marginTop:16}}>
@@ -461,7 +461,7 @@ function DetailSheet({entry, onEdit, onClose}){
             </div>
           </div>
           <div style={{flex:1}}>
-            <div style={{fontSize:24,fontWeight:800,color:C.white,lineHeight:1}}>{done}<span style={{fontSize:13,color:C.muted,fontWeight:500}}>/{entry.steps.length} tahap</span></div>
+            <div style={{fontSize:24,fontWeight:800,color:C.light,lineHeight:1}}>{done}<span style={{fontSize:13,color:C.muted,fontWeight:500}}>/{entry.steps.length} tahap</span></div>
             <div style={{marginTop:8}}><PBar p={p} color={ks.c} h={5}/></div>
             <div style={{marginTop:6}}><StepDots steps={entry.steps} color={ks.c}/></div>
           </div>
@@ -748,7 +748,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
                   {/* rank number */}
                   <div style={{width:28,height:28,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:ks.c,flexShrink:0}}>{i+1}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13,fontWeight:700,color:C.white,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nama}</div>
+                    <div style={{fontSize:13,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nama}</div>
                     <div style={{display:"flex",alignItems:"center",gap:6,marginTop:3}}>
                       <KatChip k={e.kategori}/>
                       {e.produk&&<span style={{fontSize:10,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>· {e.produk}</span>}
@@ -861,7 +861,7 @@ function StatusTab({data, loading, initKat}){
           <div key={e.id} className="entry-card" onClick={()=>setDetail(e)}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:15,fontWeight:800,color:C.white,lineHeight:1.3}}>{e.nama}</div>
+                <div style={{fontSize:15,fontWeight:800,color:C.light,lineHeight:1.3}}>{e.nama}</div>
                 {e.produk&&<div style={{fontSize:10,color:ks.c,fontWeight:600,marginTop:4}}>📎 {e.produk}</div>}
               </div>
               <div style={{position:"relative",flexShrink:0}}>
@@ -925,7 +925,7 @@ function ProdukTab({data, loading}){
               <div key={d.id} className="t-row" onClick={()=>d.link_produk&&window.open(d.link_produk,"_blank")} style={{cursor:d.link_produk?"pointer":"default"}}>
                 <div style={{width:36,height:36,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ks.icon}</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:12,fontWeight:700,color:C.white,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.nama}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.nama}</div>
                   <div style={{fontSize:11,color:ks.c,fontWeight:600,marginTop:2}}>{d.produk}</div>
                 </div>
                 {d.link_produk
@@ -1046,7 +1046,7 @@ function HukumTab(){
               style={{cursor:d.link?"pointer":"default"}}>
               <div style={{width:36,height:36,borderRadius:8,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{d.ikon||"📄"}</div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:12,fontWeight:700,color:C.white}}>{d.nama}</div>
+                <div style={{fontSize:12,fontWeight:700,color:C.light}}>{d.nama}</div>
                 <div style={{fontSize:11,color:C.muted,marginTop:2,lineHeight:1.4}}>{d.tentang}</div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
@@ -1161,7 +1161,7 @@ export default function App(){
                     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
                       <div style={{flex:1,minWidth:0}}>
                         <KatChip k={e.kategori}/>
-                        <div style={{fontSize:14,fontWeight:800,color:C.white,marginTop:6,lineHeight:1.3}}>{e.nama}</div>
+                        <div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div>
                       </div>
                       <div style={{position:"relative",flexShrink:0}}>
                         <CircProgress p={p} color={ks.c} size={40} stroke={3}/>
