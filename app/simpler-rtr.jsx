@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabase";
 
 /* ══════════════════════════════════════════════════
@@ -637,12 +637,114 @@ function AddSheet({onAdd, onClose}){
 /* ══════════════════════════════════════════════════
    HOME TAB
 ══════════════════════════════════════════════════ */
+function ProductCarousel({data}){
+  const [idx,setIdx]=useState(0);
+  const ref=useRef(null);
+
+  // Semua produk yang sudah ditetapkan, urutkan terbaru
+  function parseTgl(tgl){
+    if(!tgl) return 0;
+    const b={Januari:1,Februari:2,Maret:3,April:4,Mei:5,Juni:6,Juli:7,Agustus:8,September:9,Oktober:10,November:11,Desember:12};
+    const p=tgl.split(" ");
+    if(p.length===3){return parseInt(p[2])*10000+(b[p[1]]||0)*100+parseInt(p[0]);}
+    return 0;
+  }
+  const produk=[...data]
+    .filter(d=>d.produk&&calcP(d)===100)
+    .sort((a,b)=>{
+      const ta=a.steps[a.steps.length-1]?.tanggal||"";
+      const tb=b.steps[b.steps.length-1]?.tanggal||"";
+      return parseTgl(tb)-parseTgl(ta);
+    });
+
+  if(produk.length===0) return null;
+
+  function scrollTo(i){
+    setIdx(i);
+    if(ref.current){
+      const card=ref.current.children[i];
+      if(card) card.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
+    }
+  }
+
+  function handleScroll(){
+    if(!ref.current) return;
+    const {scrollLeft,offsetWidth}=ref.current;
+    const cardW=ref.current.children[0]?.offsetWidth+12||200;
+    const newIdx=Math.round(scrollLeft/cardW);
+    setIdx(Math.min(newIdx,produk.length-1));
+  }
+
+  return(
+    <div>
+      <div className="sec-hdr" style={{marginBottom:12}}>
+        <div className="label">Produk Terbaru</div>
+        <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{idx+1}/{produk.length}</div>
+      </div>
+
+      {/* Carousel scroll */}
+      <div ref={ref} onScroll={handleScroll}
+        style={{display:"flex",gap:12,overflowX:"auto",scrollSnapType:"x mandatory",paddingBottom:4,WebkitOverflowScrolling:"touch"}}
+        className="scroll-x">
+        {produk.map((e,i)=>{
+          const ks=KS[e.kategori];
+          const tgl=e.steps[e.steps.length-1]?.tanggal||"";
+          return(
+            <div key={e.id}
+              onClick={()=>e.link_produk&&window.open(e.link_produk,"_blank")}
+              style={{
+                flexShrink:0,
+                width:"calc(85vw - 32px)",
+                maxWidth:320,
+                background:"linear-gradient(135deg,"+ks.c+"22 0%,"+ks.c+"08 100%)",
+                border:"1.5px solid "+ks.c+"40",
+                borderRadius:16,
+                padding:"18px 16px",
+                scrollSnapAlign:"start",
+                cursor:e.link_produk?"pointer":"default",
+                transition:"transform .15s",
+              }}>
+              {/* Kategori chip + nomor */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                <KatChip k={e.kategori} size="lg"/>
+                <div style={{width:28,height:28,borderRadius:8,background:ks.c+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:ks.c}}>{i+1}</div>
+              </div>
+
+              {/* Nama kawasan */}
+              <div style={{fontSize:15,fontWeight:800,color:C.light,lineHeight:1.3,marginBottom:8}}>{e.nama}</div>
+
+              {/* Produk */}
+              <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"#fff",borderRadius:8,marginBottom:10}}>
+                <span style={{fontSize:14}}>📎</span>
+                <span style={{fontSize:12,fontWeight:700,color:ks.c,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.produk}</span>
+                {e.link_produk&&<span style={{fontSize:10,color:C.blue,fontWeight:700,flexShrink:0}}>Buka ↗</span>}
+              </div>
+
+              {/* Tanggal */}
+              {tgl&&(
+                <div style={{fontSize:10,color:ks.c,fontWeight:700}}>📅 {tgl}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Dot indicators */}
+      <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:10}}>
+        {produk.map((_,i)=>(
+          <div key={i} onClick={()=>scrollTo(i)}
+            style={{width:i===idx?20:6,height:6,borderRadius:99,background:i===idx?C.blue:C.line2,transition:"all .3s ease",cursor:"pointer"}}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HomeTab({data, loading, onGoStatus, onGoDb}){
   const totalDone=data.filter(d=>calcP(d)===100).length;
   const totalProses=data.filter(d=>{const p=calcP(d);return p>0&&p<100;}).length;
   const pct=data.length?Math.round(totalDone/data.length*100):0;
 
-  // Hanya entry yang 100% (sudah Perda/Perpres), urutkan tanggal penetapan terbaru
   function getTanggalPenetapan(e){
     const last=e.steps[e.steps.length-1];
     return last?.tanggal||"";
@@ -694,6 +796,9 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
           </div>
         </div>
       </div>
+
+      {/* Carousel Produk */}
+      {!loading&&<ProductCarousel data={data}/>}
 
       {/* Per kategori */}
       <div>
@@ -768,13 +873,39 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
       )}
 
       {/* About */}
-      <div className="card" style={{padding:"16px"}}>
+      <div className="card" style={{padding:"20px"}}>
+        {/* Logo + nama */}
+        <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
+          <img
+            src="/simpler-logo.jpg"
+            alt="SIMPLER Logo"
+            style={{width:52,height:52,borderRadius:12,objectFit:"contain",background:"#fff",border:"1px solid "+C.line,flexShrink:0}}
+            onError={e=>{e.target.style.display="none";}}
+          />
+          <div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:C.blue,lineHeight:1}}>SIMPLER</div>
+            <div style={{fontSize:10,color:C.muted,marginTop:3,lineHeight:1.4}}>Sistem Informasi Monitoring<br/>Penyelesaian Penataan Ruang Laut</div>
+          </div>
+        </div>
+
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
-        <div style={{fontSize:13,color:C.soft,lineHeight:1.75}}>
-          Dashboard monitoring progres penyelesaian perencanaan ruang laut oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kemenko Bidang Kemaritiman dan Investasi.
+        <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+        </div>
+        <div style={{marginTop:8,fontSize:13,color:C.soft,lineHeight:1.8}}>
+          Aplikasi ini memuat informasi progres penetapan <strong style={{color:C.light}}>RTRWN, RTR KSN, RZ KAW,</strong> dan <strong style={{color:C.light}}>RTRWP</strong> secara terpadu dan dapat diakses oleh publik.
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:12}}>
           {KATEGORI.map(k=><KatChip key={k} k={k}/>)}
+        </div>
+
+        {/* Instansi */}
+        <div style={{marginTop:14,padding:"10px 12px",background:C.bg,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:18}}>🏛️</span>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
+            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1085,7 +1216,11 @@ function AboutTab(){
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:16}}>
       <div className="card" style={{padding:"28px 20px",textAlign:"center"}}>
-        <div style={{fontSize:48,marginBottom:12}}>🌊</div>
+        <img
+          src="/simpler-logo.jpg"
+          alt="SIMPLER Logo"
+          style={{width:80,height:80,borderRadius:16,objectFit:"contain",background:"#fff",border:"1px solid "+C.line,marginBottom:14}}
+        />
         <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,color:C.blue,letterSpacing:"-.01em"}}>SIMPLER</div>
         <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
