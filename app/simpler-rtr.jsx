@@ -890,7 +890,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
 
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{marginTop:8,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi ini memuat informasi progres penetapan <strong style={{color:C.light}}>RTRWN, RTR KSN, RZ KAW,</strong> dan <strong style={{color:C.light}}>RTRWP</strong> secara terpadu dan dapat diakses oleh publik.
@@ -1232,7 +1232,7 @@ function AboutTab(){
       <div className="card" style={{padding:"16px"}}>
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi SIMPLER terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
