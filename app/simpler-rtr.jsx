@@ -932,6 +932,35 @@ function ProdukTab({data, loading}){
 /* ══════════════════════════════════════════════════
    DASAR HUKUM TAB — dari Supabase
 ══════════════════════════════════════════════════ */
+function AddHukumSheet({onAdd, onClose}){
+  const [f,setF]=useState({nama:"",tentang:"",ikon:"📄",link:""});
+  const [saving,setSaving]=useState(false);
+  async function handleSave(){
+    if(!f.nama.trim()) return;
+    setSaving(true);
+    try{
+      const {data,error}=await supabase.from("hukum").insert({nama:f.nama,tentang:f.tentang,ikon:f.ikon||"📄",link:f.link}).select().single();
+      if(error) throw error;
+      onAdd(data);
+    }catch(err){alert("Gagal: "+err.message);}
+    finally{setSaving(false);}
+  }
+  return(
+    <Sheet onClose={onClose} title="Tambah Dasar Hukum">
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
+        <div><div className="label" style={{marginBottom:6}}>Nama Peraturan <span style={{color:C.rose}}>*</span></div><input value={f.nama} onChange={e=>setF(p=>({...p,nama:e.target.value}))} className="field" placeholder="cth: UU No. 26 Tahun 2007"/></div>
+        <div><div className="label" style={{marginBottom:6}}>Tentang</div><input value={f.tentang} onChange={e=>setF(p=>({...p,tentang:e.target.value}))} className="field" placeholder="cth: Tentang Penataan Ruang"/></div>
+        <div><div className="label" style={{marginBottom:6}}>Ikon (emoji)</div><input value={f.ikon} onChange={e=>setF(p=>({...p,ikon:e.target.value}))} className="field" placeholder="📄" style={{maxWidth:80}}/></div>
+        <div><div className="label" style={{marginBottom:6}}>Link Google Drive (PDF)</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://drive.google.com/file/d/..."/></div>
+      </div>
+      <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
+        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
+        <button className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"+ Tambah"}</button>
+      </div>
+    </Sheet>
+  );
+}
+
 function EditHukumSheet({item, onSave, onClose}){
   const [f,setF]=useState({...item});
   const [saving,setSaving]=useState(false);
@@ -964,24 +993,39 @@ function HukumTab(){
   const [hukum,setHukum]=useState([]);
   const [loading,setLoading]=useState(true);
   const [editing,setEditing]=useState(null);
+  const [adding,setAdding]=useState(false);
 
   useEffect(()=>{
-    async function fetch(){
+    async function fetchHukum(){
       const {data}=await supabase.from("hukum").select("*").order("id");
       if(data) setHukum(data);
       setLoading(false);
     }
-    fetch();
+    fetchHukum();
   },[]);
 
   const fl=hukum.filter(d=>d.nama.toLowerCase().includes(q.toLowerCase())||d.tentang.toLowerCase().includes(q.toLowerCase()));
 
+  async function handleDelete(id){
+    if(!confirm("Hapus peraturan ini?")) return;
+    await supabase.from("hukum").delete().eq("id",id);
+    setHukum(p=>p.filter(h=>h.id!==id));
+  }
+
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:14}}>
-      <div style={{position:"relative"}}>
-        <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
-        <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari peraturan..." style={{paddingLeft:36}}/>
+      {/* Search + tombol tambah */}
+      <div style={{display:"flex",gap:8}}>
+        <div style={{position:"relative",flex:1}}>
+          <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
+          <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari peraturan..." style={{paddingLeft:36}}/>
+        </div>
+        <button onClick={()=>setAdding(true)}
+          style={{height:46,padding:"0 16px",background:C.green,color:C.bg,border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0}}>+</button>
       </div>
+
+      <div className="label">{hukum.length} peraturan</div>
+
       <div className="card">
         {loading?<Spinner/>:fl.length===0?<Empty icon="⚖️" text="Tidak ditemukan"/>:
           fl.map((d,i)=>(
@@ -993,15 +1037,25 @@ function HukumTab(){
                 <div style={{fontSize:12,fontWeight:700,color:C.white}}>{d.nama}</div>
                 <div style={{fontSize:11,color:C.muted,marginTop:2,lineHeight:1.4}}>{d.tentang}</div>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-                {d.link?<span style={{fontSize:11,color:C.blue,fontWeight:700}}>Buka ↗</span>:<span style={{color:C.muted,fontSize:14}}>›</span>}
+              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                {d.link&&<span style={{fontSize:11,color:C.blue,fontWeight:700}}>Buka ↗</span>}
                 <button onClick={e=>{e.stopPropagation();setEditing(d);}}
                   style={{background:C.surface,border:"1px solid "+C.line,borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.soft,fontWeight:700}}>Edit</button>
+                <button onClick={e=>{e.stopPropagation();handleDelete(d.id);}}
+                  style={{background:"transparent",border:"none",fontSize:14,cursor:"pointer",color:C.muted,padding:"4px"}}>🗑</button>
               </div>
             </div>
           ))
         }
       </div>
+
+      {/* Add Sheet */}
+      {adding&&(
+        <AddHukumSheet
+          onAdd={item=>{setHukum(p=>[...p,item]);setAdding(false);}}
+          onClose={()=>setAdding(false)}
+        />
+      )}
       {editing&&<EditHukumSheet item={editing} onSave={u=>setHukum(p=>p.map(h=>h.id===u.id?u:h))} onClose={()=>setEditing(null)}/>}
     </div>
   );
