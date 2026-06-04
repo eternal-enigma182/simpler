@@ -7,53 +7,53 @@ import { supabase } from "../lib/supabase";
    #95B1EE (biru muda) · #FFFDF5 (putih krem) · #E7F1A8 (hijau muda) · #364C84 (biru tua)
 ══════════════════════════════════════════════════ */
 const C = {
-  // Backgrounds — berbasis putih krem
-  bg:       "#FFFDF5",
-  bg2:      "#F5F3E8",
-  bg3:      "#EEECe0",
+  // Backgrounds — lebih gelap supaya card putih kontras
+  bg:       "#E8EDF5",   // biru abu muda — cukup beda dari putih
+  bg2:      "#DDE4F0",
+  bg3:      "#D0DAF0",
   surface:  "#FFFFFF",
-  surface2: "#F0EFE5",
+  surface2: "#F4F6FC",
   card:     "#FFFFFF",
 
-  // Borders
-  line:     "rgba(54,76,132,0.1)",
-  line2:    "rgba(54,76,132,0.2)",
+  // Borders — lebih tegas
+  line:     "rgba(54,76,132,0.18)",
+  line2:    "rgba(54,76,132,0.32)",
 
   // Text — berbasis biru tua
   white:    "#FFFFFF",
-  light:    "#364C84",   // biru tua utama
-  soft:     "#5A6E9E",   // biru tua medium
-  muted:    "#8A98BA",   // biru tua muted
+  light:    "#364C84",
+  soft:     "#5A6E9E",
+  muted:    "#8A98BA",
 
   // Accent utama — biru tua
   blue:     "#364C84",
   blueD:    "#253660",
-  blueL:    "rgba(54,76,132,0.08)",
-  blueM:    "rgba(54,76,132,0.15)",
+  blueL:    "rgba(54,76,132,0.1)",
+  blueM:    "rgba(54,76,132,0.18)",
 
   // Biru muda
   sky:      "#95B1EE",
-  skyL:     "rgba(149,177,238,0.15)",
-  skyM:     "rgba(149,177,238,0.25)",
+  skyL:     "rgba(149,177,238,0.2)",
+  skyM:     "rgba(149,177,238,0.35)",
 
-  // Hijau muda (aksen sukses/selesai)
-  lime:     "#7BA02A",   // hijau gelap untuk teks
-  limeL:    "rgba(231,241,168,0.6)",
-  limeB:    "#E7F1A8",   // hijau muda asli dari palette
+  // Hijau muda
+  lime:     "#5A7A1A",
+  limeL:    "rgba(231,241,168,0.7)",
+  limeB:    "#E7F1A8",
 
-  // Status colors
-  amber:    "#B07D2A",
-  amberL:   "rgba(255,200,80,0.15)",
-  rose:     "#C0392B",
-  roseL:    "rgba(192,57,43,0.1)",
+  // Status
+  amber:    "#8A6200",
+  amberL:   "rgba(200,160,0,0.15)",
+  rose:     "#B03020",
+  roseL:    "rgba(176,48,32,0.1)",
   violet:   "#5B4A9E",
-  violetL:  "rgba(91,74,158,0.1)",
+  violetL:  "rgba(91,74,158,0.12)",
 
-  // Kategori — semua berbasis palette
+  // Kategori
   teal:     "#364C84",
-  tealL:    "rgba(149,177,238,0.2)",
-  gold:     "#7A6520",
-  goldL:    "rgba(231,241,168,0.5)",
+  tealL:    "rgba(149,177,238,0.25)",
+  gold:     "#6A5510",
+  goldL:    "rgba(231,241,168,0.6)",
 };
 
 const KS = {
@@ -128,7 +128,7 @@ const GS = () => (
       height:52px;padding:0 16px;
       display:flex;align-items:center;justify-content:space-between;
       border-bottom:1px solid ${C.line};
-      background:rgba(255,253,245,0.95);
+      background:rgba(232,237,245,0.97);
       position:sticky;top:0;z-index:40;
       backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
     }
@@ -137,7 +137,7 @@ const GS = () => (
     /* ── NAV BAR ── */
     .nav-bar{
       position:fixed;bottom:0;left:0;right:0;
-      background:rgba(255,253,245,0.96);
+      background:rgba(232,237,245,0.97);
       backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
       border-top:1px solid ${C.line};
       display:flex;align-items:center;justify-content:space-around;
@@ -165,36 +165,36 @@ const GS = () => (
     /* ── CARDS ── */
     .card{
       background:${C.card};border:1px solid ${C.line};border-radius:14px;
-      overflow:hidden;box-shadow:0 1px 3px rgba(54,76,132,0.06);
+      overflow:hidden;box-shadow:0 2px 8px rgba(54,76,132,0.1),0 1px 2px rgba(54,76,132,0.08);
     }
-    .card-hover{cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
-    .card-hover:hover{border-color:${C.sky};box-shadow:0 2px 10px rgba(54,76,132,0.1);}
-    .card-hover:active{background:${C.bg2};}
+    .card-hover{cursor:pointer;transition:border-color .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;}
+    .card-hover:hover{border-color:${C.sky};box-shadow:0 4px 16px rgba(54,76,132,0.15);}
+    .card-hover:active{background:${C.surface2};}
 
     /* ── ENTRY CARD ── */
     .entry-card{
       background:${C.card};border:1px solid ${C.line};border-radius:14px;
       padding:16px;cursor:pointer;
-      box-shadow:0 1px 3px rgba(54,76,132,0.06);
+      box-shadow:0 2px 8px rgba(54,76,132,0.1),0 1px 2px rgba(54,76,132,0.08);
       transition:border-color .15s,box-shadow .15s,transform .15s;
       -webkit-tap-highlight-color:transparent;
     }
-    .entry-card:hover{border-color:${C.sky};box-shadow:0 3px 12px rgba(54,76,132,0.12);}
+    .entry-card:hover{border-color:${C.sky};box-shadow:0 4px 16px rgba(54,76,132,0.15);}
     .entry-card:active{transform:scale(.99);}
 
     /* ── SHEET ── */
     .sheet{
       position:fixed;bottom:0;left:0;right:0;
-      background:${C.bg};border-top:1px solid ${C.line};
+      background:#FFFFFF;border-top:1.5px solid ${C.line2};
       border-radius:20px 20px 0 0;
       max-height:92vh;display:flex;flex-direction:column;
-      box-shadow:0 -8px 40px rgba(54,76,132,0.15);
+      box-shadow:0 -8px 40px rgba(54,76,132,0.2);
       animation:sheetUp .3s cubic-bezier(.16,1,.3,1) both;
       z-index:100;
     }
     .sheet-handle{width:32px;height:3px;border-radius:2px;background:${C.line2};margin:10px auto 0;flex-shrink:0;}
     .sheet-scroll{overflow-y:auto;flex:1;}
-    .overlay{position:fixed;inset:0;background:rgba(54,76,132,0.3);z-index:99;animation:fadeIn .2s ease;}
+    .overlay{position:fixed;inset:0;background:rgba(36,56,100,0.35);z-index:99;animation:fadeIn .2s ease;}
 
     /* ── PROGRESS BAR ── */
     .pbar-wrap{position:relative;height:6px;background:${C.line};border-radius:99px;overflow:hidden;}
@@ -215,11 +215,11 @@ const GS = () => (
     /* ── INPUTS ── */
     .field{
       width:100%;padding:12px 14px;
-      background:${C.bg2};border:1.5px solid ${C.line};border-radius:10px;
+      background:#FFFFFF;border:1.5px solid ${C.line};border-radius:10px;
       font-size:15px;color:${C.light};outline:none;
       transition:border-color .15s;-webkit-appearance:none;
     }
-    .field:focus{border-color:${C.sky};}
+    .field:focus{border-color:${C.sky};box-shadow:0 0 0 3px rgba(149,177,238,0.2);}
     .field::placeholder{color:${C.muted};}
     select.field{cursor:pointer;}
 
