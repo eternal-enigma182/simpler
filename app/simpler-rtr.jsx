@@ -629,7 +629,23 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
   const totalDone=data.filter(d=>calcP(d)===100).length;
   const totalProses=data.filter(d=>{const p=calcP(d);return p>0&&p<100;}).length;
   const pct=data.length?Math.round(totalDone/data.length*100):0;
-  const recent=[...data].sort((a,b)=>calcP(b)-calcP(a)).slice(0,4);
+
+  // Hanya entry yang 100% (sudah Perda/Perpres), urutkan tanggal penetapan terbaru
+  function getTanggalPenetapan(e){
+    const last=e.steps[e.steps.length-1];
+    return last?.tanggal||"";
+  }
+  function parseTanggal(tgl){
+    if(!tgl) return 0;
+    const bulan={Januari:1,Februari:2,Maret:3,April:4,Mei:5,Juni:6,Juli:7,Agustus:8,September:9,Oktober:10,November:11,Desember:12};
+    const p=tgl.split(" ");
+    if(p.length===3){const b=bulan[p[1]]||0;return parseInt(p[2])*10000+b*100+parseInt(p[0]);}
+    return 0;
+  }
+  const recent=[...data]
+    .filter(d=>calcP(d)===100)
+    .sort((a,b)=>parseTanggal(getTanggalPenetapan(b))-parseTanggal(getTanggalPenetapan(a)))
+    .slice(0,6);
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -698,24 +714,39 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
       </div>
 
-      {/* Recent */}
+      {/* Terbaru Ditetapkan */}
       {recent.length>0&&(
         <div>
           <div className="sec-hdr">
-            <div className="label">Tertinggi Progress</div>
+            <div className="label">Terbaru Ditetapkan</div>
             <button onClick={onGoDb} style={{background:"none",border:"none",color:C.green,fontSize:12,fontWeight:700,cursor:"pointer"}}>Semua →</button>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {recent.map(e=>{
-              const p=calcP(e);const ks=KS[e.kategori];
+          <div className="card">
+            {recent.map((e,i)=>{
+              const ks=KS[e.kategori];
+              const tgl=getTanggalPenetapan(e);
               return(
-                <div key={e.id} className="card card-hover" style={{padding:"14px"}}>
-                  <KatChip k={e.kategori}/>
-                  <div style={{fontSize:13,fontWeight:700,color:C.white,marginTop:8,marginBottom:10,lineHeight:1.3,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{e.nama}</div>
-                  <PBar p={p} color={ks.c} h={3}/>
-                  <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
-                    <div><StepDots steps={e.steps.slice(0,8)} color={ks.c}/></div>
-                    <span style={{fontSize:13,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span>
+                <div key={e.id} style={{
+                  display:"flex",alignItems:"center",gap:14,padding:"13px 16px",
+                  borderBottom:i<recent.length-1?"1px solid "+C.line:"none",
+                  cursor:"pointer",transition:"background .12s"
+                }}
+                  onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                  {/* rank number */}
+                  <div style={{width:28,height:28,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:ks.c,flexShrink:0}}>{i+1}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:700,color:C.white,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nama}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginTop:3}}>
+                      <KatChip k={e.kategori}/>
+                      {e.produk&&<span style={{fontSize:10,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>· {e.produk}</span>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    {tgl
+                      ?<div style={{fontSize:10,color:C.green,fontWeight:700}}>📅 {tgl}</div>
+                      :<div style={{fontSize:11,color:ks.c,fontWeight:800}}>✓ Ditetapkan</div>
+                    }
                   </div>
                 </div>
               );
