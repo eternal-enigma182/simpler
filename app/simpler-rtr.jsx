@@ -144,7 +144,7 @@ const GS = () => (
       backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
       border-top:1px solid ${C.line};
       display:flex;align-items:center;justify-content:space-around;
-      padding:8px 0 34px;
+      padding:8px 0 40px;
       z-index:50;
     }
     .nav-item{
