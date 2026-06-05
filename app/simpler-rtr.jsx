@@ -767,10 +767,14 @@ function ProdukSection({data}){
   );
 }
 
-function HomeTab({data, loading, onGoStatus, onGoDb}){
+function HomeTab({data, loading, onGoStatus, onGoDb, onGoHukum}){
   const totalDone=data.filter(d=>calcP(d)===100).length;
   const totalProses=data.filter(d=>{const p=calcP(d);return p>0&&p<100;}).length;
   const pct=data.length?Math.round(totalDone/data.length*100):0;
+  const [hukum,setHukum]=useState([]);
+  useEffect(()=>{
+    supabase.from("hukum").select("*").order("id").then(({data})=>{if(data)setHukum(data);});
+  },[]);
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -835,6 +839,47 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
 
       {/* Produk grid */}
       {!loading&&<ProdukSection data={data}/>}
+
+      {/* Dasar Hukum grid */}
+      {hukum.length>0&&(
+        <div>
+          <div className="sec-hdr">
+            <div className="label">Dasar Hukum ({hukum.length})</div>
+            <motion.button whileTap={{scale:.9}} onClick={onGoHukum}
+              style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>
+              Semua <ChevronRight size={13} strokeWidth={2.5}/>
+            </motion.button>
+          </div>
+          <div style={{display:"grid",gap:10,gridTemplateColumns:"1fr"}}>
+            {hukum.slice(0,4).map((d,i)=>(
+              <motion.div key={d.id}
+                initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:i*0.05,duration:.25}}
+                whileHover={{y:-2,boxShadow:"0 4px 16px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
+                onClick={()=>d.link?window.open(d.link,"_blank"):null}
+                style={{
+                  background:C.card,border:"1px solid "+C.line,borderRadius:14,padding:"14px 16px",
+                  cursor:d.link?"pointer":"default",
+                  boxShadow:"0 2px 8px rgba(54,76,132,0.08)",
+                  display:"flex",gap:12,alignItems:"flex-start",
+                }}>
+                <div style={{width:40,height:40,borderRadius:10,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>
+                  {d.ikon||"📄"}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:800,color:C.light,lineHeight:1.4,marginBottom:3}}>{d.nama}</div>
+                  {d.tentang&&<div style={{fontSize:11,color:C.soft,lineHeight:1.5,marginBottom:6}}>{d.tentang}</div>}
+                  {d.link&&(
+                    <div style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 9px",background:C.blueL,borderRadius:7}}>
+                      <ExternalLink size={10} color={C.blue} strokeWidth={2}/>
+                      <span style={{fontSize:10,color:C.blue,fontWeight:700}}>Buka Dokumen</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* About card */}
       <div className="card" style={{padding:"20px"}}>
@@ -1550,7 +1595,7 @@ export default function App(){
         <div className="content">
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} transition={{duration:.25,ease:[.16,1,.3,1]}} style={{height:"100%"}}>
-              {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
+              {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null} onGoHukum={()=>setTab("hukum")}/>}
               {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
               {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
               {tab==="hukum"&&<HukumTab isAdmin={isAdmin}/>}
