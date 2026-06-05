@@ -918,7 +918,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{marginTop:8,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi ini memuat informasi progres penetapan <strong style={{color:C.light}}>RTRWN, RTR KSN, RZ KAW,</strong> dan <strong style={{color:C.light}}>RTRWP</strong> secara terpadu dan dapat diakses oleh publik.
@@ -930,7 +930,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
           <Landmark size={18} color={C.blue} strokeWidth={1.8}/>
           <div>
             <div style={{fontSize:11,fontWeight:700,color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Pangan</div>
           </div>
         </div>
       </div>
@@ -1246,13 +1246,13 @@ function AboutTab(){
         <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
           <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Pangan</div>
         </div>
       </div>
       <div className="card" style={{padding:"16px"}}>
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi SIMPLER terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
@@ -1294,7 +1294,7 @@ function AboutTab(){
         </div>
       </div>
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2025 Deputi SDM Maritim
+        SIMPLER v2.0 · © 2025 Deputi Sumber Daya Maritim
       </div>
     </div>
   );
