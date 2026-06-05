@@ -1,0 +1,14 @@
+{
+  "name": "SIMPLER - Penataan Ruang Laut",
+  "short_name": "SIMPLER",
+  "description": "Sistem Informasi Monitoring Penyelesaian Penataan Ruang Laut",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E8EDF5",
+  "theme_color": "#364C84",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/simpler-logo.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any maskable" },
+    { "src": "/simpler-logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable" }
+  ]
+}

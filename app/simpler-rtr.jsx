@@ -9,13 +9,10 @@ import {
   MapPin, Waves, Landmark, Globe, Download,
   CheckCircle2, Clock, Circle, ArrowLeft,
   Plus, Pencil, Trash2, Search, ExternalLink,
-  Building2, ScrollText, X, TriangleAlert
+  Building2, ScrollText, X, TriangleAlert,
+  SortAsc, SortDesc, Filter
 } from "lucide-react";
 
-/* ══════════════════════════════════════════════════
-   DESIGN TOKENS — Color Palette #04
-   #95B1EE (biru muda) · #FFFDF5 (putih krem) · #E7F1A8 (hijau muda) · #364C84 (biru tua)
-══════════════════════════════════════════════════ */
 const C = {
   bg:       "#E8EDF5",
   bg2:      "#DDE4F0",
@@ -72,12 +69,15 @@ const TAHAPAN = {
   "RTRWN":   ["Penyusunan Materi Teknis RTRL & RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
 };
 
+function getStepState(status) {
+  if (!status || status === "Belum") return "Belum";
+  if (status.toLowerCase().startsWith("proses") || status.toLowerCase().startsWith("belum")) return "Proses";
+  return "Selesai";
+}
+
 const calcP = e => {
   if (!e.steps || e.steps.length === 0) return 0;
-  const done = e.steps.filter(s => {
-    const st = s.status || "";
-    return st !== "Belum" && st !== "" && !st.startsWith("Proses") && !st.startsWith("Belum");
-  }).length;
+  const done = e.steps.filter(s => getStepState(s.status) === "Selesai").length;
   return Math.round(done / e.steps.length * 100);
 };
 
@@ -87,12 +87,6 @@ function formatEntry(entry, allSteps) {
     .sort((a, b) => a.urutan - b.urutan)
     .map(s => ({ id:s.id, nama:s.nama, status:s.status||"Belum", tanggal:s.tanggal||"", keterangan:s.keterangan||"" }));
   return { id:entry.id, nama:entry.nama, kategori:entry.kategori, produk:entry.produk||"", link_produk:entry.link_produk||"", steps };
-}
-
-function getStepState(status) {
-  if (!status || status === "Belum") return "Belum";
-  if (status.startsWith("Proses") || status.startsWith("proses")) return "Proses";
-  return "Selesai";
 }
 
 function exportCSV(data) {
@@ -120,7 +114,6 @@ const GS = () => (
     @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
     @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
     .fade-in{animation:fadeIn .3s ease both;}
     .slide-up{animation:slideUp .4s cubic-bezier(.16,1,.3,1) both;}
@@ -137,6 +130,14 @@ const GS = () => (
     }
     @media(min-width:640px){.topbar{padding:0 24px;height:56px;}}
 
+    .topbar-logo{
+      display:flex;align-items:center;gap:8px;
+    }
+    .topbar-logo img{
+      width:28px;height:28px;border-radius:7px;object-fit:contain;
+      background:#fff;border:1px solid ${C.line};flex-shrink:0;
+    }
+
     .nav-bar{
       position:fixed;bottom:0;left:0;right:0;
       background:rgba(232,237,245,0.97);
@@ -152,8 +153,6 @@ const GS = () => (
       transition:all .15s;-webkit-tap-highlight-color:transparent;
       min-width:64px;position:relative;
     }
-    .nav-icon{font-size:20px;transition:transform .15s;}
-    .nav-item.on .nav-icon{transform:scale(1.1);}
     .nav-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
 
     .content{flex:1;overflow-y:auto;padding-bottom:calc(72px + env(safe-area-inset-bottom));}
@@ -186,7 +185,6 @@ const GS = () => (
       border-radius:20px 20px 0 0;
       max-height:92vh;display:flex;flex-direction:column;
       box-shadow:0 -8px 40px rgba(54,76,132,0.2);
-      animation:sheetUp .3s cubic-bezier(.16,1,.3,1) both;
       z-index:100;
     }
     .sheet-handle{width:32px;height:3px;border-radius:2px;background:${C.line2};margin:10px auto 0;flex-shrink:0;}
@@ -197,13 +195,22 @@ const GS = () => (
     .pbar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);}
 
     .cprog{transform:rotate(-90deg);}
-    .cprog-track{fill:none;stroke:${C.line};}
+    .cprog-track{fill:none;}
     .cprog-fill{fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);}
 
     .step-dots{display:flex;gap:3px;align-items:center;}
     .step-dot{height:5px;border-radius:99px;transition:all .3s ease;flex-shrink:0;}
 
     .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:.04em;}
+
+    /* STATUS CHIP — full text, no truncate */
+    .status-chip{
+      display:inline-flex;align-items:center;gap:4px;
+      padding:4px 8px;border-radius:8px;
+      font-size:10px;font-weight:600;line-height:1.4;
+      white-space:normal;word-break:break-word;
+      max-width:180px;
+    }
 
     .field{
       width:100%;padding:12px 14px;
@@ -233,9 +240,9 @@ const GS = () => (
     .btn-icon{
       display:flex;align-items:center;justify-content:center;
       width:36px;height:36px;border-radius:10px;border:none;
-      background:${C.bg2};cursor:pointer;font-size:16px;
+      background:${C.bg2};cursor:pointer;
       -webkit-tap-highlight-color:transparent;transition:background .12s;
-      color:${C.soft};
+      color:${C.soft};flex-shrink:0;
     }
     .btn-icon:hover{background:${C.skyL};}
 
@@ -248,8 +255,6 @@ const GS = () => (
     .pill.on{background:${C.blue};border-color:${C.blue};color:#FFFDF5;}
     .pill:hover:not(.on){border-color:${C.sky};color:${C.blue};}
 
-    .divider{height:1px;background:${C.line};margin:0;}
-
     .t-row{
       display:flex;align-items:center;gap:14px;padding:14px 16px;
       cursor:pointer;transition:background .12s;
@@ -257,8 +262,6 @@ const GS = () => (
     }
     .t-row:hover{background:${C.bg2};}
     .t-row+.t-row{border-top:1px solid ${C.line};}
-
-    .spinner{width:24px;height:24px;border:2px solid ${C.line};border-top-color:${C.sky};border-radius:50%;animation:spin .7s linear infinite;}
 
     .card-grid{display:grid;gap:10px;grid-template-columns:1fr;}
     @media(min-width:480px){.card-grid{grid-template-columns:1fr 1fr;}}
@@ -269,10 +272,26 @@ const GS = () => (
     .scroll-x::-webkit-scrollbar{height:0;}
 
     .label{font-size:9px;font-weight:800;color:${C.muted};letter-spacing:.12em;text-transform:uppercase;}
-
-    .stat-box{background:${C.card};border:1px solid ${C.line};border-radius:14px;padding:16px;text-align:center;}
-
     .sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+
+    /* PRODUK CARD GRID */
+    .produk-grid{display:grid;gap:12px;grid-template-columns:1fr;}
+    @media(min-width:480px){.produk-grid{grid-template-columns:1fr 1fr;}}
+    @media(min-width:768px){.produk-grid{grid-template-columns:repeat(3,1fr);}}
+
+    /* ADMIN FILTER BAR — sticky top, full height accounted */
+    .admin-filter{
+      background:${C.bg};
+      border-bottom:1px solid ${C.line};
+      padding:10px 16px;
+      position:sticky;
+      top:52px;
+      z-index:30;
+    }
+    @media(min-width:640px){.admin-filter{top:56px;}}
+
+    /* ADMIN CONTENT — padd top so filter doesn't cover cards */
+    .admin-content{padding:16px;}
   `}</style>
 );
 
@@ -282,7 +301,7 @@ const GS = () => (
 function PBar({p, color, h=5}){
   return(
     <div className="pbar-wrap" style={{height:h}}>
-      <div className="pbar-fill" style={{width:p+"%", background:color, height:"100%"}}/>
+      <div className="pbar-fill" style={{width:p+"%", background:color}}/>
     </div>
   );
 }
@@ -300,7 +319,7 @@ function CircProgress({p, color, size=56, stroke=4}){
   );
 }
 
-function StepDots({steps, color}){
+function StepDots({steps}){
   const total = steps.length;
   const maxShow = Math.min(total, 12);
   return(
@@ -316,30 +335,33 @@ function StepDots({steps, color}){
   );
 }
 
+/* ── Status chip — full text, wraps ── */
+function StatusChip({st}){
+  const state = getStepState(st);
+  const s = ST[state]||ST.Belum;
+  const {Icon} = s;
+  return(
+    <span className="status-chip" style={{background:s.l, color:s.c}}>
+      <Icon size={10} strokeWidth={2.5} style={{flexShrink:0, marginTop:1}}/>
+      {st}
+    </span>
+  );
+}
+
 function KatIcon({k, size=28, bg=true}){
   const ks=KS[k];
   const [hovered,setHovered]=useState(false);
   const animMap={
-    "RZ KAW":{rotate:0, y:hovered?-3:0, scale:hovered?1.15:1},
-    "RTR KSN":{rotate:0, y:hovered?-4:0, scale:hovered?1.2:1},
-    "RTRWP":{rotate:0, y:hovered?-2:0, scale:hovered?1.1:1},
-    "RTRWN":{rotate:hovered?180:0, scale:hovered?1.1:1, y:0},
+    "RZ KAW":{y:hovered?-3:0,scale:hovered?1.15:1,rotate:0},
+    "RTR KSN":{y:hovered?-4:0,scale:hovered?1.2:1,rotate:0},
+    "RTRWP":{y:hovered?-2:0,scale:hovered?1.1:1,rotate:0},
+    "RTRWN":{rotate:hovered?180:0,scale:hovered?1.1:1,y:0},
   };
   const anim=animMap[k]||{y:0,scale:1,rotate:0};
   return(
-    <motion.div
-      onHoverStart={()=>setHovered(true)}
-      onHoverEnd={()=>setHovered(false)}
-      style={{
-        width:bg?size+16:size, height:bg?size+16:size,
-        borderRadius:bg?12:0,
-        background:bg?ks.l:"transparent",
-        display:"flex",alignItems:"center",justifyContent:"center",
-        flexShrink:0,cursor:"default",
-      }}>
-      <motion.div
-        animate={{y:anim.y, scale:anim.scale, rotate:anim.rotate}}
-        transition={{type:"spring",stiffness:400,damping:20}}>
+    <motion.div onHoverStart={()=>setHovered(true)} onHoverEnd={()=>setHovered(false)}
+      style={{width:bg?size+16:size,height:bg?size+16:size,borderRadius:bg?12:0,background:bg?ks.l:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <motion.div animate={anim} transition={{type:"spring",stiffness:400,damping:20}}>
         <ks.Icon size={size} color={ks.c} strokeWidth={1.8}/>
       </motion.div>
     </motion.div>
@@ -350,31 +372,13 @@ function KatChip({k, size="sm"}){
   const ks=KS[k];
   const [hovered,setHovered]=useState(false);
   return(
-    <motion.span
-      className="chip"
-      onHoverStart={()=>setHovered(true)}
-      onHoverEnd={()=>setHovered(false)}
-      style={{background:ks.l,color:ks.c,fontSize:size==="lg"?11:9,gap:5}}>
-      <motion.div
-        animate={{scale:hovered?1.2:1,rotate:k==="RTRWN"&&hovered?180:0}}
-        transition={{type:"spring",stiffness:400,damping:18}}
-        style={{display:"flex",alignItems:"center"}}>
+    <motion.span className="chip" onHoverStart={()=>setHovered(true)} onHoverEnd={()=>setHovered(false)}
+      style={{background:ks.l,color:ks.c,fontSize:size==="lg"?11:9}}>
+      <motion.div animate={{scale:hovered?1.2:1,rotate:k==="RTRWN"&&hovered?180:0}} transition={{type:"spring",stiffness:400,damping:18}} style={{display:"flex",alignItems:"center"}}>
         <ks.Icon size={size==="lg"?12:10} strokeWidth={2} color={ks.c}/>
       </motion.div>
       {k}
     </motion.span>
-  );
-}
-
-function StatusChip({st}){
-  const state = getStepState(st);
-  const s=ST[state]||ST.Belum;
-  const {Icon}=s;
-  return(
-    <span className="chip" style={{background:s.l,color:s.c,gap:4,maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-flex"}}>
-      <Icon size={10} strokeWidth={2.5} style={{flexShrink:0}}/>
-      <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9}}>{st}</span>
-    </span>
   );
 }
 
@@ -397,18 +401,23 @@ function Empty({text="Tidak ada data"}){
   );
 }
 
+/* Logo SIMPLER kecil inline */
+function SimplerLogo({size=24}){
+  return(
+    <img src="/simpler-logo.jpg" alt="SIMPLER"
+      style={{width:size,height:size,borderRadius:Math.round(size*0.28),objectFit:"contain",background:"#fff",border:"1px solid "+C.line,flexShrink:0}}
+      onError={e=>{e.target.style.display="none";}}/>
+  );
+}
+
 /* ══════════════════════════════════════════════════
-   SHEET WRAPPER
+   SHEET
 ══════════════════════════════════════════════════ */
 function Sheet({children, onClose, title, subtitle}){
   return(
     <AnimatePresence>
-      <motion.div key="overlay" className="overlay"
-        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-        onClick={onClose}/>
-      <motion.div key="sheet" className="sheet"
-        initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}}
-        transition={{type:"spring",stiffness:320,damping:36,mass:.9}}>
+      <motion.div key="overlay" className="overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={onClose}/>
+      <motion.div key="sheet" className="sheet" initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}} transition={{type:"spring",stiffness:320,damping:36,mass:.9}}>
         <div className="sheet-handle"/>
         {(title||subtitle)&&(
           <div style={{padding:"16px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexShrink:0}}>
@@ -431,11 +440,11 @@ function Sheet({children, onClose, title, subtitle}){
    NAV BAR
 ══════════════════════════════════════════════════ */
 const NAV5 = [
-  {id:"home",    Icon:Home,     label:"Beranda",  anim:{hover:{y:-3,scale:1.15}}},
-  {id:"status",  Icon:BarChart2,label:"Status",   anim:{hover:{scaleY:1.2,y:-2}}},
-  {id:"produk",  Icon:FileText, label:"Produk",   anim:{hover:{rotate:[-2,2,-1,0],scale:1.1}}},
-  {id:"hukum",   Icon:Scale,    label:"Hukum",    anim:{hover:{rotate:[0,-10,10,0],scale:1.1}}},
-  {id:"tentang", Icon:Info,     label:"Tentang",  anim:{hover:{scale:1.2,y:-2}}},
+  {id:"home",    Icon:Home,     label:"Beranda"},
+  {id:"status",  Icon:BarChart2,label:"Status"},
+  {id:"produk",  Icon:FileText, label:"Produk"},
+  {id:"hukum",   Icon:Scale,    label:"Hukum"},
+  {id:"tentang", Icon:Info,     label:"Tentang"},
 ];
 
 function NavBar({active, onTab}){
@@ -444,31 +453,12 @@ function NavBar({active, onTab}){
       {NAV5.map(n=>{
         const on=active===n.id;
         return(
-          <motion.div key={n.id}
-            className={"nav-item"+(on?" on":"")}
-            onClick={()=>onTab(n.id)}
-            whileTap={{scale:.85}}
-            style={{position:"relative"}}>
-            {on&&(
-              <motion.div layoutId="nav-pill"
-                style={{position:"absolute",inset:0,background:C.skyL,borderRadius:10}}
-                transition={{type:"spring",stiffness:380,damping:30}}/>
-            )}
-            <motion.div
-              whileHover={n.anim.hover}
-              animate={{y:on?-1:0, scale:on?1.08:1}}
-              transition={{type:"spring",stiffness:380,damping:22}}
-              style={{position:"relative",zIndex:1}}>
+          <motion.div key={n.id} className={"nav-item"+(on?" on":"")} onClick={()=>onTab(n.id)} whileTap={{scale:.85}} style={{position:"relative"}}>
+            {on&&<motion.div layoutId="nav-pill" style={{position:"absolute",inset:0,background:C.skyL,borderRadius:10}} transition={{type:"spring",stiffness:380,damping:30}}/>}
+            <motion.div animate={{y:on?-1:0,scale:on?1.08:1}} transition={{type:"spring",stiffness:380,damping:22}} style={{position:"relative",zIndex:1}}>
               <n.Icon size={20} strokeWidth={on?2.5:1.8} color={on?C.blue:C.muted}/>
             </motion.div>
-            <span className="nav-label" style={{
-              color:on?C.blue:C.muted,
-              position:"relative",zIndex:1,
-              fontWeight:on?800:600,
-              transition:"color .2s"
-            }}>
-              {n.label}
-            </span>
+            <span className="nav-label" style={{color:on?C.blue:C.muted,position:"relative",zIndex:1,fontWeight:on?800:600,transition:"color .2s"}}>{n.label}</span>
           </motion.div>
         );
       })}
@@ -490,7 +480,10 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
               <ArrowLeft size={18} strokeWidth={2}/>
             </motion.button>
           )}
-          <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{title}</span>
+          <div className="topbar-logo">
+            <SimplerLogo size={28}/>
+            <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{title}</span>
+          </div>
         </div>
         {rightBtn&&rightBtn}
       </div>
@@ -506,9 +499,9 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
    DETAIL SHEET
 ══════════════════════════════════════════════════ */
 function DetailSheet({entry, onEdit, onClose}){
-  const p = calcP(entry);
-  const ks = KS[entry.kategori];
-  const done = entry.steps.filter(s=>getStepState(s.status)==="Selesai").length;
+  const p=calcP(entry);
+  const ks=KS[entry.kategori];
+  const done=entry.steps.filter(s=>getStepState(s.status)==="Selesai").length;
   return(
     <Sheet onClose={onClose}>
       <div style={{padding:"20px 20px 0"}}>
@@ -524,7 +517,7 @@ function DetailSheet({entry, onEdit, onClose}){
           <div style={{flex:1}}>
             <div style={{fontSize:24,fontWeight:800,color:C.light,lineHeight:1}}>{done}<span style={{fontSize:13,color:C.muted,fontWeight:500}}>/{entry.steps.length} tahap</span></div>
             <div style={{marginTop:8}}><PBar p={p} color={ks.c} h={5}/></div>
-            <div style={{marginTop:6}}><StepDots steps={entry.steps} color={ks.c}/></div>
+            <div style={{marginTop:6}}><StepDots steps={entry.steps}/></div>
           </div>
         </div>
         {entry.produk&&(
@@ -541,9 +534,9 @@ function DetailSheet({entry, onEdit, onClose}){
       </div>
       <div className="card" style={{margin:"0 16px",borderRadius:12}}>
         {entry.steps.map((s,i)=>{
-          const state = getStepState(s.status);
-          const st = ST[state]||ST.Belum;
-          const isLast = i===entry.steps.length-1;
+          const state=getStepState(s.status);
+          const st=ST[state]||ST.Belum;
+          const isLast=i===entry.steps.length-1;
           return(
             <div key={i} style={{display:"flex",gap:14,padding:"12px 16px",borderBottom:isLast?"none":"1px solid "+C.line}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0}}>
@@ -551,11 +544,10 @@ function DetailSheet({entry, onEdit, onClose}){
                 {!isLast&&<div style={{width:1,flex:1,background:C.line,margin:"3px 0"}}/>}
               </div>
               <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
-                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
-                  <span style={{fontSize:12,fontWeight:600,color:state==="Selesai"?C.light:C.soft,lineHeight:1.4,flex:1}}>{s.nama}</span>
-                  <StatusChip st={s.status}/>
-                </div>
-                {s.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:4}}>📅 {s.tanggal}</div>}
+                <div style={{fontSize:12,fontWeight:600,color:state==="Selesai"?C.light:C.soft,lineHeight:1.4,marginBottom:6}}>{s.nama}</div>
+                {/* Status full text — tidak dipotong */}
+                <StatusChip st={s.status}/>
+                {s.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:6}}>📅 {s.tanggal}</div>}
                 {s.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{s.keterangan}</div>}
               </div>
             </div>
@@ -571,7 +563,7 @@ function DetailSheet({entry, onEdit, onClose}){
 }
 
 /* ══════════════════════════════════════════════════
-   EDIT SHEET — dropdown pakai pilihan-steps.js
+   EDIT SHEET — dropdown pilihan spesifik
 ══════════════════════════════════════════════════ */
 function EditSheet({entry, onSave, onClose}){
   const [f,setF]=useState(JSON.parse(JSON.stringify(entry)));
@@ -592,23 +584,19 @@ function EditSheet({entry, onSave, onClose}){
   }
 
   return(
-    <Sheet onClose={onClose} title={"Edit"} subtitle={f.nama}>
+    <Sheet onClose={onClose} title="Edit" subtitle={f.nama}>
       <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-
         <div>
           <div className="label" style={{marginBottom:6}}>Produk Hukum</div>
           <input value={f.produk} onChange={e=>setF(p=>({...p,produk:e.target.value}))} className="field" placeholder="cth: Perpres No 40 Tahun 2022"/>
         </div>
-
         <div>
-          <div className="label" style={{marginBottom:6}}>Link Google Drive (PDF)</div>
+          <div className="label" style={{marginBottom:6}}>Link Dokumen (PDF)</div>
           <input value={f.link_produk} onChange={e=>setF(p=>({...p,link_produk:e.target.value}))} className="field" placeholder="https://drive.google.com/file/d/..."/>
         </div>
-
         <div className="label" style={{marginTop:4}}>Tahapan</div>
-
         {f.steps.map((step,i)=>{
-          const pilihan = getPilihan(f.kategori, step.nama);
+          const pilihan=getPilihan(f.kategori, step.nama);
           return(
             <div key={i} className="card" style={{padding:"14px 16px",borderRadius:12}}>
               <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
@@ -673,8 +661,7 @@ function AddSheet({onAdd, onClose}){
               const ks=KS[k];const on=kat===k;
               return(
                 <div key={k} onClick={()=>setKat(k)}
-                  style={{padding:"12px 14px",borderRadius:12,border:"1px solid "+(on?ks.c:C.line),
-                    background:on?ks.l:"transparent",cursor:"pointer",transition:"all .15s"}}>
+                  style={{padding:"12px 14px",borderRadius:12,border:"1px solid "+(on?ks.c:C.line),background:on?ks.l:"transparent",cursor:"pointer",transition:"all .15s"}}>
                   <KatIcon k={k} size={22} bg={false}/>
                   <div style={{fontSize:11,fontWeight:800,color:on?ks.c:C.soft,letterSpacing:".03em"}}>{k}</div>
                 </div>
@@ -688,97 +675,87 @@ function AddSheet({onAdd, onClose}){
         </div>
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))"}}>
-        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleAdd} style={{opacity:saving?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Plus size={15}/> {saving?"Menambahkan...":"Tambah Entri"}</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleAdd} style={{opacity:saving?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Plus size={15}/>{saving?"Menambahkan...":"Tambah Entri"}</motion.button>
       </div>
     </Sheet>
   );
 }
 
 /* ══════════════════════════════════════════════════
-   HOME TAB
+   HOME TAB — Produk carousel + grid card
 ══════════════════════════════════════════════════ */
-function ProductCarousel({data}){
-  const [idx,setIdx]=useState(0);
-  const ref=useRef(null);
+function ProdukCard({e, index}){
+  const ks=KS[e.kategori];
+  const tgl=e.steps[e.steps.length-1]?.tanggal||"";
+  return(
+    <motion.div
+      onClick={()=>e.link_produk&&window.open(e.link_produk,"_blank")}
+      whileHover={{y:-4,boxShadow:"0 8px 24px rgba(54,76,132,0.18)"}}
+      whileTap={{scale:.97}}
+      style={{
+        background:"linear-gradient(135deg,"+ks.c+"18 0%,"+ks.c+"05 100%)",
+        border:"1.5px solid "+ks.c+"35",
+        borderRadius:16,
+        padding:"16px",
+        cursor:e.link_produk?"pointer":"default",
+        position:"relative",
+        overflow:"hidden",
+      }}>
+      {/* nomor badge */}
+      <div style={{position:"absolute",top:12,right:12,width:24,height:24,borderRadius:6,background:ks.c+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c}}>{index+1}</div>
+
+      <KatChip k={e.kategori} size="lg"/>
+      <div style={{fontSize:14,fontWeight:800,color:C.light,lineHeight:1.3,marginTop:8,marginBottom:10,paddingRight:28}}>{e.nama}</div>
+
+      <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 10px",background:"rgba(255,255,255,0.85)",borderRadius:8,marginBottom:tgl?8:0}}>
+        <span style={{fontSize:13}}>📎</span>
+        <span style={{fontSize:11,fontWeight:700,color:ks.c,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.produk}</span>
+        {e.link_produk&&<ExternalLink size={11} color={ks.c} strokeWidth={2} style={{flexShrink:0}}/>}
+      </div>
+      {tgl&&<div style={{fontSize:10,color:ks.c,fontWeight:700}}>📅 {tgl}</div>}
+    </motion.div>
+  );
+}
+
+function ProdukSection({data}){
+  const [showAll,setShowAll]=useState(false);
 
   function parseTgl(tgl){
     if(!tgl) return 0;
     const b={Januari:1,Februari:2,Maret:3,April:4,Mei:5,Juni:6,Juli:7,Agustus:8,September:9,Oktober:10,November:11,Desember:12};
     const p=tgl.split(" ");
-    if(p.length===3){return parseInt(p[2])*10000+(b[p[1]]||0)*100+parseInt(p[0]);}
+    if(p.length===3) return parseInt(p[2])*10000+(b[p[1]]||0)*100+parseInt(p[0]);
     return 0;
   }
+
   const produk=[...data]
     .filter(d=>d.produk&&calcP(d)===100)
-    .sort((a,b)=>{
-      const ta=a.steps[a.steps.length-1]?.tanggal||"";
-      const tb=b.steps[b.steps.length-1]?.tanggal||"";
-      return parseTgl(tb)-parseTgl(ta);
-    });
+    .sort((a,b)=>parseTgl(b.steps[b.steps.length-1]?.tanggal||"")-parseTgl(a.steps[a.steps.length-1]?.tanggal||""));
 
   if(produk.length===0) return null;
-
-  function scrollTo(i){
-    setIdx(i);
-    if(ref.current){
-      const card=ref.current.children[i];
-      if(card) card.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
-    }
-  }
-
-  function handleScroll(){
-    if(!ref.current) return;
-    const cardW=ref.current.children[0]?.offsetWidth+12||200;
-    const newIdx=Math.round(ref.current.scrollLeft/cardW);
-    setIdx(Math.min(newIdx,produk.length-1));
-  }
+  const displayed=showAll?produk:produk.slice(0,6);
 
   return(
     <div>
-      <div className="sec-hdr" style={{marginBottom:12}}>
-        <div className="label">Produk Terbaru</div>
-        <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{idx+1}/{produk.length}</div>
+      <div className="sec-hdr">
+        <div className="label">Produk Telah Ditetapkan ({produk.length})</div>
+        {produk.length>6&&(
+          <motion.button whileTap={{scale:.9}} onClick={()=>setShowAll(p=>!p)}
+            style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>
+            {showAll?"Sembunyikan":"Semua"} <ChevronRight size={13} strokeWidth={2.5} style={{transform:showAll?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s"}}/>
+          </motion.button>
+        )}
       </div>
-      <div ref={ref} onScroll={handleScroll}
-        style={{display:"flex",gap:12,overflowX:"auto",scrollSnapType:"x mandatory",paddingBottom:4,WebkitOverflowScrolling:"touch"}}
-        className="scroll-x">
-        {produk.map((e,i)=>{
-          const ks=KS[e.kategori];
-          const tgl=e.steps[e.steps.length-1]?.tanggal||"";
-          return(
-            <div key={e.id}
-              onClick={()=>e.link_produk&&window.open(e.link_produk,"_blank")}
-              style={{
-                flexShrink:0,
-                width:"calc(85vw - 32px)",
-                maxWidth:320,
-                background:"linear-gradient(135deg,"+ks.c+"22 0%,"+ks.c+"08 100%)",
-                border:"1.5px solid "+ks.c+"40",
-                borderRadius:16,
-                padding:"18px 16px",
-                scrollSnapAlign:"start",
-                cursor:e.link_produk?"pointer":"default",
-              }}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-                <KatChip k={e.kategori} size="lg"/>
-                <div style={{width:28,height:28,borderRadius:8,background:ks.c+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:ks.c}}>{i+1}</div>
-              </div>
-              <div style={{fontSize:15,fontWeight:800,color:C.light,lineHeight:1.3,marginBottom:8}}>{e.nama}</div>
-              <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"#fff",borderRadius:8,marginBottom:10}}>
-                <span style={{fontSize:14}}>📎</span>
-                <span style={{fontSize:12,fontWeight:700,color:ks.c,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.produk}</span>
-                {e.link_produk&&<span style={{fontSize:10,color:C.blue,fontWeight:700,flexShrink:0}}>Buka ↗</span>}
-              </div>
-              {tgl&&<div style={{fontSize:10,color:ks.c,fontWeight:700}}>📅 {tgl}</div>}
-            </div>
-          );
-        })}
-      </div>
-      <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:10}}>
-        {produk.map((_,i)=>(
-          <div key={i} onClick={()=>scrollTo(i)}
-            style={{width:i===idx?20:6,height:6,borderRadius:99,background:i===idx?C.blue:C.line2,transition:"all .3s ease",cursor:"pointer"}}/>
-        ))}
+      <div className="produk-grid">
+        <AnimatePresence>
+          {displayed.map((e,i)=>(
+            <motion.div key={e.id}
+              initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}}
+              transition={{delay:i*0.04,duration:.25}}>
+              <ProdukCard e={e} index={i}/>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -789,39 +766,24 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
   const totalProses=data.filter(d=>{const p=calcP(d);return p>0&&p<100;}).length;
   const pct=data.length?Math.round(totalDone/data.length*100):0;
 
-  function getTanggalPenetapan(e){
-    const last=e.steps[e.steps.length-1];
-    return last?.tanggal||"";
-  }
-  function parseTanggal(tgl){
-    if(!tgl) return 0;
-    const bulan={Januari:1,Februari:2,Maret:3,April:4,Mei:5,Juni:6,Juli:7,Agustus:8,September:9,Oktober:10,November:11,Desember:12};
-    const p=tgl.split(" ");
-    if(p.length===3){const b=bulan[p[1]]||0;return parseInt(p[2])*10000+b*100+parseInt(p[0]);}
-    return 0;
-  }
-  const recent=[...data]
-    .filter(d=>calcP(d)===100)
-    .sort((a,b)=>parseTanggal(getTanggalPenetapan(b))-parseTanggal(getTanggalPenetapan(a)))
-    .slice(0,6);
-
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:20}}>
       {/* Hero */}
-      <div style={{background:"linear-gradient(135deg,#364C84 0%,#253660 100%)",border:"none",borderRadius:18,padding:"24px",position:"relative",overflow:"hidden"}}>
+      <div style={{background:"linear-gradient(135deg,#364C84 0%,#253660 100%)",borderRadius:18,padding:"24px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",right:-60,top:-60,width:200,height:200,borderRadius:"50%",background:"rgba(149,177,238,0.15)",pointerEvents:"none"}}/>
         <div style={{position:"absolute",right:20,bottom:-80,width:160,height:160,borderRadius:"50%",background:"rgba(231,241,168,0.08)",pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
           <div style={{fontSize:9,fontWeight:800,color:"rgba(231,241,168,0.8)",letterSpacing:".15em",textTransform:"uppercase",marginBottom:8}}>Sistem Informasi Monitoring</div>
-          <div style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(28px,6vw,40px)",fontWeight:800,color:"#FFFDF5",lineHeight:.95,letterSpacing:"-.02em"}}>SIMPLER</div>
-          <div style={{fontSize:13,color:"rgba(149,177,238,0.85)",marginTop:6,marginBottom:20}}>Penyelesaian Penataan Ruang Laut</div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+            <img src="/simpler-logo.jpg" alt="SIMPLER" style={{width:36,height:36,borderRadius:9,objectFit:"contain",background:"rgba(255,255,255,0.9)",border:"1px solid rgba(255,255,255,0.3)",flexShrink:0}} onError={e=>{e.target.style.display="none";}}/>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(28px,6vw,40px)",fontWeight:800,color:"#FFFDF5",lineHeight:.95,letterSpacing:"-.02em"}}>SIMPLER</div>
+          </div>
+          <div style={{fontSize:13,color:"rgba(149,177,238,0.85)",marginBottom:20}}>Penyelesaian Penataan Ruang Laut</div>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{position:"relative",flexShrink:0}}>
               <CircProgress p={pct} color="#E7F1A8" size={80} stroke={6}/>
               <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <div style={{textAlign:"center"}}>
-                  <div style={{fontSize:17,fontWeight:800,color:"#E7F1A8",lineHeight:1}}>{pct}%</div>
-                </div>
+                <div style={{fontSize:17,fontWeight:800,color:"#E7F1A8",lineHeight:1}}>{pct}%</div>
               </div>
             </div>
             <div>
@@ -836,9 +798,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
       </div>
 
-      {!loading&&<ProductCarousel data={data}/>}
-
-      {/* Per kategori */}
+      {/* Progress per kategori */}
       <div>
         <div className="sec-hdr"><div className="label">Progress per Kategori</div></div>
         <div className="card">
@@ -848,11 +808,10 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
             const done=es.filter(d=>calcP(d)===100).length;
             const p=es.length?Math.round(done/es.length*100):0;
             return(
-              <motion.div key={k}
-                initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.06,duration:.3,ease:[.16,1,.3,1]}}
+              <motion.div key={k} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.06,duration:.3}}
                 onClick={()=>onGoStatus(k)}
-                style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",borderBottom:i<3?"1px solid "+C.line:"none",transition:"background .12s"}}
-                whileHover={{background:C.surface}} whileTap={{background:C.surface2}}>
+                style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",borderBottom:i<3?"1px solid "+C.line:"none"}}
+                whileHover={{background:C.surface2}} whileTap={{background:C.surface2}}>
                 <KatIcon k={k} size={18}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
@@ -868,49 +827,13 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
       </div>
 
-      {/* Terbaru Ditetapkan */}
-      {recent.length>0&&(
-        <div>
-          <div className="sec-hdr">
-            <div className="label">Terbaru Ditetapkan</div>
-            {onGoDb&&<motion.button whileTap={{scale:.9}} onClick={onGoDb} style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>Semua <ChevronRight size={13} strokeWidth={2.5}/></motion.button>}
-          </div>
-          <div className="card">
-            {recent.map((e,i)=>{
-              const ks=KS[e.kategori];
-              const tgl=getTanggalPenetapan(e);
-              return(
-                <motion.div key={e.id}
-                  initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:i*0.05,duration:.3,ease:[.16,1,.3,1]}}
-                  style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderBottom:i<recent.length-1?"1px solid "+C.line:"none",cursor:"pointer"}}
-                  whileHover={{background:C.surface}} whileTap={{scale:.99}}>
-                  <div style={{width:28,height:28,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:ks.c,flexShrink:0}}>{i+1}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:13,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nama}</div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginTop:3}}>
-                      <KatChip k={e.kategori}/>
-                      {e.produk&&<span style={{fontSize:10,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>· {e.produk}</span>}
-                    </div>
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    {tgl
-                      ?<div style={{fontSize:10,color:C.lime,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><CheckCircle2 size={10} strokeWidth={2}/>{tgl}</div>
-                      :<div style={{fontSize:11,color:ks.c,fontWeight:800,display:"flex",alignItems:"center",gap:3}}><CheckCircle2 size={11} strokeWidth={2}/> Ditetapkan</div>
-                    }
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Produk grid */}
+      {!loading&&<ProdukSection data={data}/>}
 
-      {/* About */}
+      {/* About card */}
       <div className="card" style={{padding:"20px"}}>
         <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
-          <img src="/simpler-logo.jpg" alt="SIMPLER Logo"
-            style={{width:52,height:52,borderRadius:12,objectFit:"contain",background:"#fff",border:"1px solid "+C.line,flexShrink:0}}
-            onError={e=>{e.target.style.display="none";}}/>
+          <img src="/simpler-logo.jpg" alt="SIMPLER Logo" style={{width:52,height:52,borderRadius:12,objectFit:"contain",background:"#fff",border:"1px solid "+C.line,flexShrink:0}} onError={e=>{e.target.style.display="none";}}/>
           <div>
             <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:C.blue,lineHeight:1}}>SIMPLER</div>
             <div style={{fontSize:10,color:C.muted,marginTop:3,lineHeight:1.4}}>Sistem Informasi Monitoring<br/>Penyelesaian Penataan Ruang Laut</div>
@@ -918,20 +841,10 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Pangan.
-        </div>
-        <div style={{marginTop:8,fontSize:13,color:C.soft,lineHeight:1.8}}>
-          Aplikasi ini memuat informasi progres penetapan <strong style={{color:C.light}}>RTRWN, RTR KSN, RZ KAW,</strong> dan <strong style={{color:C.light}}>RTRWP</strong> secara terpadu dan dapat diakses oleh publik.
+          SIMPLER adalah dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:12}}>
           {KATEGORI.map(k=><KatChip key={k} k={k}/>)}
-        </div>
-        <div style={{marginTop:14,padding:"10px 12px",background:C.bg,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
-          <Landmark size={18} color={C.blue} strokeWidth={1.8}/>
-          <div>
-            <div style={{fontSize:11,fontWeight:700,color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Pangan</div>
-          </div>
         </div>
       </div>
     </div>
@@ -939,13 +852,17 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
 }
 
 /* ══════════════════════════════════════════════════
-   STATUS TAB
+   STATUS TAB — dengan search + sort + filter
 ══════════════════════════════════════════════════ */
 function StatusTab({data, loading, initKat}){
   const [kat,setKat]=useState(initKat||null);
   const [detail,setDetail]=useState(null);
   const [editing,setEditing]=useState(null);
   const [localData,setLocalData]=useState(null);
+  const [search,setSearch]=useState("");
+  const [sort,setSort]=useState("nama-asc"); // nama-asc | nama-desc | progress-asc | progress-desc
+  const [filterSt,setFilterSt]=useState("Semua");
+
   const displayData=localData||data;
   useEffect(()=>{setKat(initKat||null);},[initKat]);
 
@@ -963,7 +880,7 @@ function StatusTab({data, loading, initKat}){
           const done=displayData.filter(d=>d.kategori===k&&calcP(d)===100).length;
           const p=Math.round(done/max*100);
           return(
-            <motion.div key={k} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:["RTRWN","RTR KSN","RZ KAW","RTRWP"].indexOf(k)*0.07}} style={{marginBottom:14}}>
+            <motion.div key={k} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
                 <span style={{fontSize:12,fontWeight:600,color:C.light}}>{label}</span>
                 <span style={{fontSize:12,fontWeight:700,color:ks.c}}>{done}<span style={{color:C.muted,fontWeight:400}}>/{max}</span></span>
@@ -973,7 +890,6 @@ function StatusTab({data, loading, initKat}){
           );
         })}
       </div>
-
       <div className="label">Pilih Kategori</div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         {KATEGORI.map(k=>{
@@ -984,13 +900,13 @@ function StatusTab({data, loading, initKat}){
           return(
             <motion.div key={k} className="card card-hover" onClick={()=>setKat(k)} style={{padding:"18px 16px"}}
               whileHover={{y:-3,boxShadow:"0 8px 24px rgba(54,76,132,0.15)"}} whileTap={{scale:.97}}
-              initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:KATEGORI.indexOf(k)*0.07,duration:.3,ease:[.16,1,.3,1]}}>
+              initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:KATEGORI.indexOf(k)*0.07}}>
               <div style={{marginBottom:10}}><KatIcon k={k} size={28} bg={false}/></div>
               <KatChip k={k}/>
               <div style={{marginTop:12}}>
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,color:ks.c,lineHeight:1}}>{done}<span style={{fontSize:13,color:C.muted,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:500}}>/{es.length}</span></div>
                 <div style={{marginTop:8}}><PBar p={p} color={ks.c} h={4}/></div>
-                <div style={{marginTop:6}}><StepDots steps={es.flatMap(e=>e.steps).slice(0,8)} color={ks.c}/></div>
+                <div style={{marginTop:6}}><StepDots steps={es.flatMap(e=>e.steps).slice(0,8)}/></div>
               </div>
             </motion.div>
           );
@@ -999,9 +915,23 @@ function StatusTab({data, loading, initKat}){
     </div>
   );
 
-  const entries=displayData.filter(d=>d.kategori===kat);
+  // Filter + sort entries
+  let entries=displayData.filter(d=>d.kategori===kat);
+  if(search) entries=entries.filter(e=>e.nama.toLowerCase().includes(search.toLowerCase())||e.produk.toLowerCase().includes(search.toLowerCase()));
+  if(filterSt==="Selesai") entries=entries.filter(e=>calcP(e)===100);
+  else if(filterSt==="Proses") entries=entries.filter(e=>{const p=calcP(e);return p>0&&p<100;});
+  else if(filterSt==="Belum") entries=entries.filter(e=>calcP(e)===0);
+  entries=[...entries].sort((a,b)=>{
+    if(sort==="nama-asc") return a.nama.localeCompare(b.nama);
+    if(sort==="nama-desc") return b.nama.localeCompare(a.nama);
+    if(sort==="progress-desc") return calcP(b)-calcP(a);
+    if(sort==="progress-asc") return calcP(a)-calcP(b);
+    return 0;
+  });
+
   const ks=KS[kat];
-  const done=entries.filter(e=>calcP(e)===100).length;
+  const allEntries=displayData.filter(d=>d.kategori===kat);
+  const done=allEntries.filter(e=>calcP(e)===100).length;
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1009,15 +939,37 @@ function StatusTab({data, loading, initKat}){
         <motion.button whileTap={{scale:.88}} className="btn-icon" onClick={()=>setKat(null)} style={{color:C.blue,background:C.blueL}}><ArrowLeft size={18} strokeWidth={2}/></motion.button>
         <div style={{flex:1}}>
           <KatChip k={kat} size="lg"/>
-          <div style={{fontSize:11,color:C.muted,marginTop:3}}>{done}/{entries.length} ditetapkan</div>
+          <div style={{fontSize:11,color:C.muted,marginTop:3}}>{done}/{allEntries.length} ditetapkan</div>
         </div>
       </div>
-      {loading?<Spinner/>:entries.map((e,i)=>{
+
+      {/* Search + Sort + Filter */}
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <div style={{position:"relative",flex:1,minWidth:160}}>
+          <Search size={14} color={C.muted} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)} className="field" placeholder="Cari..." style={{paddingLeft:34,height:40,fontSize:13}}/>
+        </div>
+        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:"auto",height:40,fontSize:12,paddingLeft:10,paddingRight:10}}>
+          <option value="nama-asc">A–Z</option>
+          <option value="nama-desc">Z–A</option>
+          <option value="progress-desc">Progress ↓</option>
+          <option value="progress-asc">Progress ↑</option>
+        </select>
+        <select value={filterSt} onChange={e=>setFilterSt(e.target.value)} className="field" style={{width:"auto",height:40,fontSize:12,paddingLeft:10,paddingRight:10}}>
+          <option value="Semua">Semua</option>
+          <option value="Selesai">✓ Selesai</option>
+          <option value="Proses">◑ Proses</option>
+          <option value="Belum">○ Belum</option>
+        </select>
+      </div>
+      <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{entries.length} entri</div>
+
+      {loading?<Spinner/>:entries.length===0?<Empty text="Tidak ditemukan"/>:entries.map((e,i)=>{
         const p=calcP(e);
         const next=e.steps.find(s=>getStepState(s.status)!=="Selesai");
         return(
           <motion.div key={e.id} className="entry-card"
-            initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.04,duration:.25,ease:[.16,1,.3,1]}}
+            initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.04,duration:.25}}
             whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
             onClick={()=>setDetail(e)}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
@@ -1032,12 +984,8 @@ function StatusTab({data, loading, initKat}){
                 </div>
               </div>
             </div>
-            <StepDots steps={e.steps} color={ks.c}/>
-            {next&&(
-              <div style={{marginTop:8,fontSize:10,color:C.muted}}>
-                <span style={{color:C.soft,display:"flex",alignItems:"center",gap:4}}><ChevronRight size={10} strokeWidth={2} color={C.muted}/>{next.nama}</span>
-              </div>
-            )}
+            <StepDots steps={e.steps}/>
+            {next&&<div style={{marginTop:8,fontSize:10,color:C.soft,display:"flex",alignItems:"center",gap:4}}><ChevronRight size={10} strokeWidth={2} color={C.muted}/>{next.nama}</div>}
           </motion.div>
         );
       })}
@@ -1048,23 +996,60 @@ function StatusTab({data, loading, initKat}){
 }
 
 /* ══════════════════════════════════════════════════
-   PRODUK TAB
+   PRODUK TAB — dengan search + filter + sort
 ══════════════════════════════════════════════════ */
 function ProdukTab({data, loading}){
   const [q,setQ]=useState("");
-  const items=data.filter(d=>d.produk&&(d.nama.toLowerCase().includes(q.toLowerCase())||d.produk.toLowerCase().includes(q.toLowerCase())));
+  const [katFilter,setKatFilter]=useState("Semua");
+  const [sort,setSort]=useState("nama-asc");
+
+  let items=data.filter(d=>d.produk);
+  if(q) items=items.filter(d=>d.nama.toLowerCase().includes(q.toLowerCase())||d.produk.toLowerCase().includes(q.toLowerCase()));
+  if(katFilter!=="Semua") items=items.filter(d=>d.kategori===katFilter);
+  items=[...items].sort((a,b)=>{
+    if(sort==="nama-asc") return a.nama.localeCompare(b.nama);
+    if(sort==="nama-desc") return b.nama.localeCompare(a.nama);
+    if(sort==="kat") return a.kategori.localeCompare(b.kategori);
+    return 0;
+  });
+
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:14}}>
-      <div style={{position:"relative"}}>
-        <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
-        <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari produk hukum..." style={{paddingLeft:36}}/>
+      {/* Search + sort */}
+      <div style={{display:"flex",gap:8}}>
+        <div style={{position:"relative",flex:1}}>
+          <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+          <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari produk hukum..." style={{paddingLeft:36}}/>
+        </div>
+        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:"auto",fontSize:12,paddingLeft:10,paddingRight:10}}>
+          <option value="nama-asc">A–Z</option>
+          <option value="nama-desc">Z–A</option>
+          <option value="kat">Kategori</option>
+        </select>
       </div>
+
+      {/* Filter kategori pills */}
+      <div className="scroll-x">
+        {["Semua",...KATEGORI].map(k=>{
+          const on=katFilter===k;
+          const ks=KS[k];
+          return(
+            <button key={k} className={"pill"+(on?" on":"")} onClick={()=>setKatFilter(k)}
+              style={on&&ks?{background:ks.c,borderColor:ks.c,color:"#fff"}:{}}>
+              {k}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Summary mini */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
         {KATEGORI.map(k=>{
           const ks=KS[k];
           const cnt=data.filter(d=>d.kategori===k&&d.produk).length;
           return(
-            <div key={k} style={{background:C.card,border:"1px solid "+C.line,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <div key={k} onClick={()=>setKatFilter(k)} style={{background:C.card,border:"1px solid "+C.line,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}
+              onClick={()=>setKatFilter(katFilter===k?"Semua":k)}>
               <KatIcon k={k} size={16}/>
               <div>
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:ks.c,lineHeight:1}}>{cnt}</div>
@@ -1074,9 +1059,10 @@ function ProdukTab({data, loading}){
           );
         })}
       </div>
-      <div className="label">Daftar Produk</div>
+
+      <div className="label">{items.length} produk</div>
       <div className="card">
-        {loading?<Spinner/>:items.length===0?<Empty icon="📄" text="Tidak ada produk"/>:
+        {loading?<Spinner/>:items.length===0?<Empty text="Tidak ada produk"/>:
           items.map((d,i)=>{
             const ks=KS[d.kategori];
             return(
@@ -1102,7 +1088,7 @@ function ProdukTab({data, loading}){
 }
 
 /* ══════════════════════════════════════════════════
-   DASAR HUKUM TAB
+   HUKUM TAB
 ══════════════════════════════════════════════════ */
 function AddHukumSheet({onAdd, onClose}){
   const [f,setF]=useState({nama:"",tentang:"",ikon:"📄",link:""});
@@ -1120,10 +1106,10 @@ function AddHukumSheet({onAdd, onClose}){
   return(
     <Sheet onClose={onClose} title="Tambah Dasar Hukum">
       <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-        <div><div className="label" style={{marginBottom:6}}>Nama Peraturan <span style={{color:C.rose}}>*</span></div><input value={f.nama} onChange={e=>setF(p=>({...p,nama:e.target.value}))} className="field" placeholder="cth: UU No. 26 Tahun 2007"/></div>
+        <div><div className="label" style={{marginBottom:6}}>Nama Peraturan *</div><input value={f.nama} onChange={e=>setF(p=>({...p,nama:e.target.value}))} className="field" placeholder="cth: UU No. 26 Tahun 2007"/></div>
         <div><div className="label" style={{marginBottom:6}}>Tentang</div><input value={f.tentang} onChange={e=>setF(p=>({...p,tentang:e.target.value}))} className="field" placeholder="cth: Tentang Penataan Ruang"/></div>
         <div><div className="label" style={{marginBottom:6}}>Ikon (emoji)</div><input value={f.ikon} onChange={e=>setF(p=>({...p,ikon:e.target.value}))} className="field" placeholder="📄" style={{maxWidth:80}}/></div>
-        <div><div className="label" style={{marginBottom:6}}>Link Dokumen (PDF)</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://..."/></div>
+        <div><div className="label" style={{marginBottom:6}}>Link Dokumen</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://..."/></div>
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
@@ -1150,7 +1136,7 @@ function EditHukumSheet({item, onSave, onClose}){
         <div><div className="label" style={{marginBottom:6}}>Nama Peraturan</div><input value={f.nama} onChange={e=>setF(p=>({...p,nama:e.target.value}))} className="field"/></div>
         <div><div className="label" style={{marginBottom:6}}>Tentang</div><input value={f.tentang} onChange={e=>setF(p=>({...p,tentang:e.target.value}))} className="field"/></div>
         <div><div className="label" style={{marginBottom:6}}>Ikon</div><input value={f.ikon} onChange={e=>setF(p=>({...p,ikon:e.target.value}))} className="field" style={{maxWidth:80}}/></div>
-        <div><div className="label" style={{marginBottom:6}}>Link Dokumen (PDF)</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://..."/></div>
+        <div><div className="label" style={{marginBottom:6}}>Link Dokumen</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://..."/></div>
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
@@ -1168,12 +1154,7 @@ function HukumTab({isAdmin}){
   const [adding,setAdding]=useState(false);
 
   useEffect(()=>{
-    async function fetchHukum(){
-      const {data}=await supabase.from("hukum").select("*").order("id");
-      if(data) setHukum(data);
-      setLoading(false);
-    }
-    fetchHukum();
+    supabase.from("hukum").select("*").order("id").then(({data})=>{if(data)setHukum(data);setLoading(false);});
   },[]);
 
   const fl=hukum.filter(d=>d.nama.toLowerCase().includes(q.toLowerCase())||(d.tentang||"").toLowerCase().includes(q.toLowerCase()));
@@ -1193,7 +1174,7 @@ function HukumTab({isAdmin}){
         </div>
         {isAdmin&&(
           <motion.button whileTap={{scale:.9}} onClick={()=>setAdding(true)}
-            style={{height:46,padding:"0 16px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center"}}>
+            style={{height:46,padding:"0 16px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center"}}>
             <Plus size={20}/>
           </motion.button>
         )}
@@ -1229,7 +1210,7 @@ function HukumTab({isAdmin}){
 }
 
 /* ══════════════════════════════════════════════════
-   ABOUT TAB
+   ABOUT TAB — logo tengah + logo di setiap SIMPLER
 ══════════════════════════════════════════════════ */
 function AboutTab(){
   const menus=[
@@ -1239,25 +1220,45 @@ function AboutTab(){
   ];
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:16}}>
-      <div className="card" style={{padding:"28px 20px",textAlign:"center"}}>
-        <img src="/simpler-logo.jpg" alt="SIMPLER Logo"
-          style={{width:80,height:80,borderRadius:16,objectFit:"contain",background:"#fff",border:"1px solid "+C.line,marginBottom:14}}/>
-        <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,color:C.blue,letterSpacing:"-.01em"}}>SIMPLER</div>
-        <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
+
+      {/* Hero card — logo ditengah */}
+      <div className="card" style={{padding:"32px 20px",textAlign:"center"}}>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+          <img src="/simpler-logo.jpg" alt="SIMPLER Logo"
+            style={{width:96,height:96,borderRadius:22,objectFit:"contain",background:"#fff",border:"2px solid "+C.line,boxShadow:"0 4px 20px rgba(54,76,132,0.15)"}}
+            onError={e=>{e.target.style.display="none";}}/>
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:4}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,color:C.blue,letterSpacing:"-.01em"}}>SIMPLER</div>
+        </div>
+        <div style={{fontSize:11,color:C.muted,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>
+          Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut
+        </div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
           <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Pangan</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
         </div>
       </div>
+
       <div className="card" style={{padding:"16px"}}>
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
+          <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
+            <SimplerLogo size={16}/>
+            <strong style={{color:C.light}}>SIMPLER</strong>
+          </span>{" "}
+          adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
         </div>
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
-          Aplikasi SIMPLER terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
+          Aplikasi{" "}
+          <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
+            <SimplerLogo size={14}/>
+            <strong style={{color:C.light}}>SIMPLER</strong>
+          </span>{" "}
+          terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
         </div>
       </div>
+
       <div className="label">Fitur Utama</div>
       {menus.map((m,i)=>(
         <div key={i} className="card" style={{padding:"16px"}}>
@@ -1270,6 +1271,7 @@ function AboutTab(){
           </div>
         </div>
       ))}
+
       <div className="card" style={{padding:"16px"}}>
         <div className="label" style={{marginBottom:10}}>Cakupan Monitoring</div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -1293,8 +1295,9 @@ function AboutTab(){
           })}
         </div>
       </div>
+
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2025 Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2025 Deputi SDM Maritim
       </div>
     </div>
   );
@@ -1315,11 +1318,9 @@ function LoginSheet({onLogin, onClose}){
     try{
       const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
       if(error) throw error;
-      onLogin(data.user);
-      onClose();
-    }catch(e){
-      setErr("Email atau password salah.");
-    }finally{setLoading(false);}
+      onLogin(data.user);onClose();
+    }catch(e){setErr("Email atau password salah.");}
+    finally{setLoading(false);}
   }
 
   return(
@@ -1328,19 +1329,13 @@ function LoginSheet({onLogin, onClose}){
         <div style={{padding:"12px 14px",background:C.blueL,borderRadius:10,fontSize:13,color:C.blue,lineHeight:1.5}}>
           🔐 Halaman ini khusus untuk admin yang berwenang mengedit data SIMPLER.
         </div>
-        <div>
-          <div className="label" style={{marginBottom:6}}>Email</div>
-          <input value={email} onChange={e=>setEmail(e.target.value)} className="field" placeholder="admin@email.com" type="email"/>
-        </div>
-        <div>
-          <div className="label" style={{marginBottom:6}}>Password</div>
-          <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} className="field" placeholder="••••••••" type="password"/>
-        </div>
+        <div><div className="label" style={{marginBottom:6}}>Email</div><input value={email} onChange={e=>setEmail(e.target.value)} className="field" placeholder="admin@email.com" type="email"/></div>
+        <div><div className="label" style={{marginBottom:6}}>Password</div><input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} className="field" placeholder="••••••••" type="password"/></div>
         {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8,display:"flex",alignItems:"center",gap:6}}><TriangleAlert size={14}/>{err}</div>}
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
-        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleLogin} style={{flex:2,opacity:loading?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Lock size={14}/> {loading?"Masuk...":"Masuk"}</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleLogin} style={{flex:2,opacity:loading?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Lock size={14}/>{loading?"Masuk...":"Masuk"}</motion.button>
       </div>
     </Sheet>
   );
@@ -1361,6 +1356,7 @@ export default function App(){
   const [dbSearch,setDbSearch]=useState("");
   const [dbKat,setDbKat]=useState("Semua");
   const [dbSt,setDbSt]=useState("Semua");
+  const [dbSort,setDbSort]=useState("nama-asc");
   const [user,setUser]=useState(null);
   const [showLogin,setShowLogin]=useState(false);
   const isAdmin=!!user;
@@ -1389,78 +1385,118 @@ export default function App(){
   function addEntry(n){setData(p=>[...p,n]);fetchData();}
   async function handleLogout(){await supabase.auth.signOut();setUser(null);setShowDb(false);}
 
-  const filteredDb=useMemo(()=>data.filter(d=>{
-    const mq=d.nama.toLowerCase().includes(dbSearch.toLowerCase())||d.kategori.toLowerCase().includes(dbSearch.toLowerCase());
-    const mk=dbKat==="Semua"||d.kategori===dbKat;
-    const p=calcP(d);
-    const ms=dbSt==="Semua"||(dbSt==="Selesai"&&p===100)||(dbSt==="Proses"&&p>0&&p<100)||(dbSt==="Belum"&&p===0);
-    return mq&&mk&&ms;
-  }),[data,dbSearch,dbKat,dbSt]);
+  const filteredDb=useMemo(()=>{
+    let d=data.filter(e=>{
+      const mq=e.nama.toLowerCase().includes(dbSearch.toLowerCase())||e.kategori.toLowerCase().includes(dbSearch.toLowerCase());
+      const mk=dbKat==="Semua"||e.kategori===dbKat;
+      const p=calcP(e);
+      const ms=dbSt==="Semua"||(dbSt==="Selesai"&&p===100)||(dbSt==="Proses"&&p>0&&p<100)||(dbSt==="Belum"&&p===0);
+      return mq&&mk&&ms;
+    });
+    d=[...d].sort((a,b)=>{
+      if(dbSort==="nama-asc") return a.nama.localeCompare(b.nama);
+      if(dbSort==="nama-desc") return b.nama.localeCompare(a.nama);
+      if(dbSort==="progress-desc") return calcP(b)-calcP(a);
+      if(dbSort==="progress-asc") return calcP(a)-calcP(b);
+      return 0;
+    });
+    return d;
+  },[data,dbSearch,dbKat,dbSt,dbSort]);
 
+  /* ── ADMIN DASHBOARD ── */
   if(showDb&&isAdmin) return(
     <>
       <GS/>
-      <AppShell title="Dashboard Admin" hideNav onBack={()=>setShowDb(false)}
-        rightBtn={
+      <div className="app-wrap fade-in">
+        <div style={{height:"env(safe-area-inset-top,0px)",background:C.bg}}/>
+        {/* Topbar */}
+        <div className="topbar">
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <motion.button whileTap={{scale:.88}} className="btn-icon" onClick={()=>setShowDb(false)} style={{color:C.blue,background:C.blueL}}>
+              <ArrowLeft size={18} strokeWidth={2}/>
+            </motion.button>
+            <div className="topbar-logo">
+              <SimplerLogo size={28}/>
+              <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue}}>Dashboard Admin</span>
+            </div>
+          </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <motion.button whileTap={{scale:.9}} className="btn-icon" onClick={()=>exportCSV(data)} style={{color:C.blue}}><Download size={15} strokeWidth={2}/></motion.button>
             <motion.button whileTap={{scale:.95}} onClick={()=>setAdding(true)} style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Plus size={14}/> Tambah</motion.button>
             <motion.button whileTap={{scale:.9}} onClick={handleLogout} style={{height:36,padding:"0 12px",background:C.roseL,color:C.rose,border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><LogOut size={13}/> Keluar</motion.button>
           </div>
-        }>
-        <div style={{background:C.bg,borderBottom:"1px solid "+C.line,padding:"12px 16px",position:"sticky",top:52,zIndex:30}}>
-          <div style={{position:"relative",marginBottom:10}}>
-            <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
-            <input value={dbSearch} onChange={e=>setDbSearch(e.target.value)} className="field" placeholder="Cari kawasan..." style={{paddingLeft:36}}/>
+        </div>
+
+        {/* Filter bar — sticky, tidak menutup card */}
+        <div className="admin-filter">
+          <div style={{display:"flex",gap:8,marginBottom:8}}>
+            <div style={{position:"relative",flex:1}}>
+              <Search size={14} color={C.muted} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+              <input value={dbSearch} onChange={e=>setDbSearch(e.target.value)} className="field" placeholder="Cari kawasan..." style={{paddingLeft:32,height:38,fontSize:13}}/>
+            </div>
+            <select value={dbSort} onChange={e=>setDbSort(e.target.value)} className="field" style={{width:"auto",height:38,fontSize:12,paddingLeft:10,paddingRight:10,flexShrink:0}}>
+              <option value="nama-asc">A–Z</option>
+              <option value="nama-desc">Z–A</option>
+              <option value="progress-desc">Progress ↓</option>
+              <option value="progress-asc">Progress ↑</option>
+            </select>
           </div>
-          <div className="scroll-x" style={{marginBottom:8}}>
+          <div className="scroll-x" style={{marginBottom:6}}>
             {["Semua",...KATEGORI].map(k=>{const on=dbKat===k;const ks=KS[k];return <button key={k} className={"pill"+(on?" on":"")} onClick={()=>setDbKat(k)} style={on&&ks?{background:ks.c,borderColor:ks.c,color:"#FFFDF5"}:{}}>{k}</button>;})}
           </div>
-          <div className="scroll-x">
-            {["Semua","✓ Selesai","◑ Proses","○ Belum"].map((s,i)=>{const val=["Semua","Selesai","Proses","Belum"][i];const on=dbSt===val;return <button key={val} className={"pill"+(on?" on":"")} onClick={()=>setDbSt(val)}>{s}</button>;})}
-            <span style={{marginLeft:6,fontSize:11,color:C.muted,alignSelf:"center",whiteSpace:"nowrap",fontWeight:600}}>{filteredDb.length} entri</span>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div className="scroll-x" style={{flex:1}}>
+              {["Semua","✓ Selesai","◑ Proses","○ Belum"].map((s,i)=>{const val=["Semua","Selesai","Proses","Belum"][i];const on=dbSt===val;return <button key={val} className={"pill"+(on?" on":"")} onClick={()=>setDbSt(val)}>{s}</button>;})}
+            </div>
+            <span style={{fontSize:11,color:C.muted,fontWeight:600,flexShrink:0,whiteSpace:"nowrap"}}>{filteredDb.length} entri</span>
           </div>
         </div>
-        <div className="inner">
-          {loading?<Spinner/>:(
-            <div className="card-grid">
-              {filteredDb.map((e,i)=>{const p=calcP(e);const ks=KS[e.kategori];const next=e.steps.find(s=>getStepState(s.status)!=="Selesai");return(
-                <motion.div key={e.id} className="entry-card"
-                  initial={{opacity:0,scale:.97}} animate={{opacity:1,scale:1}} transition={{delay:Math.min(i*0.03,.3),duration:.25}}
-                  whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
-                  onClick={()=>setDetail(e)}>
-                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
-                    <div style={{flex:1,minWidth:0}}><KatChip k={e.kategori}/><div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div></div>
-                    <div style={{position:"relative",flexShrink:0}}><CircProgress p={p} color={ks.c} size={40} stroke={3}/><div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:8,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span></div></div>
-                  </div>
-                  <StepDots steps={e.steps} color={ks.c}/>
-                  {next&&<div style={{marginTop:6,fontSize:10,color:C.muted,display:"flex",alignItems:"center",gap:3}}><ChevronRight size={10} strokeWidth={2}/>{next.nama}</div>}
-                </motion.div>
-              );})}
-              {filteredDb.length===0&&!loading&&<div style={{gridColumn:"1/-1"}}><Empty/></div>}
-            </div>
-          )}
+
+        {/* Cards — padding atas sudah dari .admin-content */}
+        <div className="content no-nav">
+          <div className="admin-content">
+            {loading?<Spinner/>:(
+              <div className="card-grid">
+                {filteredDb.map((e,i)=>{
+                  const p=calcP(e);const ks=KS[e.kategori];
+                  const next=e.steps.find(s=>getStepState(s.status)!=="Selesai");
+                  return(
+                    <motion.div key={e.id} className="entry-card"
+                      initial={{opacity:0,scale:.97}} animate={{opacity:1,scale:1}} transition={{delay:Math.min(i*0.03,.3),duration:.25}}
+                      whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
+                      onClick={()=>setDetail(e)}>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
+                        <div style={{flex:1,minWidth:0}}><KatChip k={e.kategori}/><div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div></div>
+                        <div style={{position:"relative",flexShrink:0}}>
+                          <CircProgress p={p} color={ks.c} size={40} stroke={3}/>
+                          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:8,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span></div>
+                        </div>
+                      </div>
+                      <StepDots steps={e.steps}/>
+                      {next&&<div style={{marginTop:6,fontSize:10,color:C.muted,display:"flex",alignItems:"center",gap:3}}><ChevronRight size={10} strokeWidth={2}/>{next.nama}</div>}
+                    </motion.div>
+                  );
+                })}
+                {filteredDb.length===0&&!loading&&<div style={{gridColumn:"1/-1"}}><Empty/></div>}
+              </div>
+            )}
+          </div>
         </div>
+
         {detail&&!editing&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)}/>}
         {editing&&<EditSheet entry={editing} onSave={updateEntry} onClose={()=>setEditing(null)}/>}
         {adding&&<AddSheet onAdd={addEntry} onClose={()=>setAdding(false)}/>}
-      </AppShell>
+      </div>
     </>
   );
 
   const titles={home:"SIMPLER",status:"Status RTR",produk:"Produk Hukum",hukum:"Dasar Hukum",tentang:"Tentang SIMPLER"};
   const rightBtn=isAdmin
     ?<div style={{display:"flex",gap:6,alignItems:"center"}}>
-        <motion.button whileTap={{scale:.9}} className="btn-icon" onClick={()=>setShowDb(true)} style={{color:C.blue,background:C.blueL}}>
-          <Settings size={16} strokeWidth={2}/>
-        </motion.button>
-        <motion.button whileTap={{scale:.9}} onClick={handleLogout} style={{height:32,padding:"0 10px",background:C.roseL,color:C.rose,border:"none",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
-          <LogOut size={13}/> Keluar
-        </motion.button>
+        <motion.button whileTap={{scale:.9}} className="btn-icon" onClick={()=>setShowDb(true)} style={{color:C.blue,background:C.blueL}}><Settings size={16} strokeWidth={2}/></motion.button>
+        <motion.button whileTap={{scale:.9}} onClick={handleLogout} style={{height:32,padding:"0 10px",background:C.roseL,color:C.rose,border:"none",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><LogOut size={13}/> Keluar</motion.button>
       </div>
-    :<motion.button whileTap={{scale:.95}} onClick={()=>setShowLogin(true)} style={{height:32,padding:"0 12px",background:C.blueL,color:C.blue,border:"1px solid "+C.line2,borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
-        <Lock size={13}/> Admin
-      </motion.button>;
+    :<motion.button whileTap={{scale:.95}} onClick={()=>setShowLogin(true)} style={{height:32,padding:"0 12px",background:C.blueL,color:C.blue,border:"1px solid "+C.line2,borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><Lock size={13}/> Admin</motion.button>;
 
   return(
     <>
@@ -1468,15 +1504,15 @@ export default function App(){
       <div className="app-wrap">
         <div style={{height:"env(safe-area-inset-top,0px)",background:C.bg}}/>
         <div className="topbar">
-          <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{titles[tab]}</span>
+          <div className="topbar-logo">
+            <SimplerLogo size={28}/>
+            <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{titles[tab]}</span>
+          </div>
           {rightBtn}
         </div>
         <div className="content">
           <AnimatePresence mode="wait">
-            <motion.div key={tab}
-              initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}}
-              transition={{duration:.25,ease:[.16,1,.3,1]}}
-              style={{height:"100%"}}>
+            <motion.div key={tab} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} transition={{duration:.25,ease:[.16,1,.3,1]}} style={{height:"100%"}}>
               {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
               {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
               {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
