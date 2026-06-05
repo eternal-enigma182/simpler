@@ -1048,8 +1048,7 @@ function ProdukTab({data, loading}){
           const ks=KS[k];
           const cnt=data.filter(d=>d.kategori===k&&d.produk).length;
           return(
-            <div key={k} onClick={()=>setKatFilter(k)} style={{background:C.card,border:"1px solid "+C.line,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}
-              onClick={()=>setKatFilter(katFilter===k?"Semua":k)}>
+            <div key={k} onClick={()=>setKatFilter(katFilter===k?"Semua":k)} style={{background:C.card,border:"1px solid "+C.line,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
               <KatIcon k={k} size={16}/>
               <div>
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:ks.c,lineHeight:1}}>{cnt}</div>
