@@ -682,43 +682,11 @@ function AddSheet({onAdd, onClose}){
 }
 
 /* ══════════════════════════════════════════════════
-   HOME TAB — Produk carousel + grid card
+   HOME TAB — Produk carousel
 ══════════════════════════════════════════════════ */
-function ProdukCard({e, index}){
-  const ks=KS[e.kategori];
-  const tgl=e.steps[e.steps.length-1]?.tanggal||"";
-  return(
-    <motion.div
-      onClick={()=>e.link_produk&&window.open(e.link_produk,"_blank")}
-      whileHover={{y:-4,boxShadow:"0 8px 24px rgba(54,76,132,0.18)"}}
-      whileTap={{scale:.97}}
-      style={{
-        background:"linear-gradient(135deg,"+ks.c+"18 0%,"+ks.c+"05 100%)",
-        border:"1.5px solid "+ks.c+"35",
-        borderRadius:16,
-        padding:"16px",
-        cursor:e.link_produk?"pointer":"default",
-        position:"relative",
-        overflow:"hidden",
-      }}>
-      {/* nomor badge */}
-      <div style={{position:"absolute",top:12,right:12,width:24,height:24,borderRadius:6,background:ks.c+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c}}>{index+1}</div>
-
-      <KatChip k={e.kategori} size="lg"/>
-      <div style={{fontSize:14,fontWeight:800,color:C.light,lineHeight:1.3,marginTop:8,marginBottom:10,paddingRight:28}}>{e.nama}</div>
-
-      <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 10px",background:"rgba(255,255,255,0.85)",borderRadius:8,marginBottom:tgl?8:0}}>
-        <span style={{fontSize:13}}>📎</span>
-        <span style={{fontSize:11,fontWeight:700,color:ks.c,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.produk}</span>
-        {e.link_produk&&<ExternalLink size={11} color={ks.c} strokeWidth={2} style={{flexShrink:0}}/>}
-      </div>
-      {tgl&&<div style={{fontSize:10,color:ks.c,fontWeight:700}}>📅 {tgl}</div>}
-    </motion.div>
-  );
-}
-
 function ProdukSection({data}){
-  const [showAll,setShowAll]=useState(false);
+  const [idx,setIdx]=useState(0);
+  const ref=useRef(null);
 
   function parseTgl(tgl){
     if(!tgl) return 0;
@@ -733,29 +701,67 @@ function ProdukSection({data}){
     .sort((a,b)=>parseTgl(b.steps[b.steps.length-1]?.tanggal||"")-parseTgl(a.steps[a.steps.length-1]?.tanggal||""));
 
   if(produk.length===0) return null;
-  const displayed=showAll?produk:produk.slice(0,6);
+
+  function scrollTo(i){
+    setIdx(i);
+    if(ref.current){
+      const card=ref.current.children[i];
+      if(card) card.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
+    }
+  }
+
+  function handleScroll(){
+    if(!ref.current) return;
+    const cardW=(ref.current.children[0]?.offsetWidth||200)+12;
+    setIdx(Math.min(Math.round(ref.current.scrollLeft/cardW),produk.length-1));
+  }
 
   return(
     <div>
-      <div className="sec-hdr">
+      <div className="sec-hdr" style={{marginBottom:12}}>
         <div className="label">Produk Telah Ditetapkan ({produk.length})</div>
-        {produk.length>6&&(
-          <motion.button whileTap={{scale:.9}} onClick={()=>setShowAll(p=>!p)}
-            style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>
-            {showAll?"Sembunyikan":"Semua"} <ChevronRight size={13} strokeWidth={2.5} style={{transform:showAll?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s"}}/>
-          </motion.button>
-        )}
+        <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{idx+1}/{produk.length}</div>
       </div>
-      <div className="produk-grid">
-        <AnimatePresence>
-          {displayed.map((e,i)=>(
-            <motion.div key={e.id}
-              initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}}
-              transition={{delay:i*0.04,duration:.25}}>
-              <ProdukCard e={e} index={i}/>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      <div ref={ref} onScroll={handleScroll}
+        style={{display:"flex",gap:12,overflowX:"auto",scrollSnapType:"x mandatory",paddingBottom:4,WebkitOverflowScrolling:"touch"}}
+        className="scroll-x">
+        {produk.map((e,i)=>{
+          const ks=KS[e.kategori];
+          const tgl=e.steps[e.steps.length-1]?.tanggal||"";
+          return(
+            <div key={e.id}
+              onClick={()=>e.link_produk&&window.open(e.link_produk,"_blank")}
+              style={{
+                flexShrink:0,
+                width:"calc(85vw - 32px)",
+                maxWidth:320,
+                background:"linear-gradient(135deg,"+ks.c+"22 0%,"+ks.c+"08 100%)",
+                border:"1.5px solid "+ks.c+"40",
+                borderRadius:16,
+                padding:"18px 16px",
+                scrollSnapAlign:"start",
+                cursor:e.link_produk?"pointer":"default",
+              }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                <KatChip k={e.kategori} size="lg"/>
+                <div style={{width:28,height:28,borderRadius:8,background:ks.c+"20",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:ks.c}}>{i+1}</div>
+              </div>
+              <div style={{fontSize:15,fontWeight:800,color:C.light,lineHeight:1.3,marginBottom:8}}>{e.nama}</div>
+              <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",background:"rgba(255,255,255,0.9)",borderRadius:8,marginBottom:tgl?8:0}}>
+                <span style={{fontSize:14}}>📎</span>
+                <span style={{fontSize:12,fontWeight:700,color:ks.c,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.produk}</span>
+                {e.link_produk&&<span style={{fontSize:10,color:C.blue,fontWeight:700,flexShrink:0}}>Buka ↗</span>}
+              </div>
+              {tgl&&<div style={{fontSize:10,color:ks.c,fontWeight:700}}>📅 {tgl}</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:10}}>
+        {produk.map((_,i)=>(
+          <div key={i} onClick={()=>scrollTo(i)}
+            style={{width:i===idx?20:6,height:6,borderRadius:99,background:i===idx?C.blue:C.line2,transition:"all .3s ease",cursor:"pointer"}}/>
+        ))}
       </div>
     </div>
   );
@@ -841,7 +847,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         </div>
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          SIMPLER adalah dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:12}}>
           {KATEGORI.map(k=><KatChip key={k} k={k}/>)}
@@ -1166,6 +1172,7 @@ function HukumTab({isAdmin}){
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:14}}>
+      {/* Search + tombol tambah */}
       <div style={{display:"flex",gap:8}}>
         <div style={{position:"relative",flex:1}}>
           <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
@@ -1179,29 +1186,60 @@ function HukumTab({isAdmin}){
         )}
       </div>
       <div className="label">{hukum.length} peraturan</div>
-      <div className="card">
-        {loading?<Spinner/>:fl.length===0?<Empty text="Tidak ditemukan"/>:
-          fl.map((d,i)=>(
-            <motion.div key={d.id} className="t-row" whileTap={{scale:.99}} whileHover={{background:C.bg2}}
+
+      {/* Card grid — seperti tampilan Produk Hukum */}
+      {loading?<Spinner/>:fl.length===0?<Empty text="Tidak ditemukan"/>:(
+        <div style={{display:"grid",gap:10,gridTemplateColumns:"1fr"}}>
+          {fl.map((d,i)=>(
+            <motion.div key={d.id}
+              initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:i*0.04,duration:.25}}
+              whileHover={{y:-2,boxShadow:"0 4px 16px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
               onClick={()=>d.link?window.open(d.link,"_blank"):null}
-              style={{cursor:d.link?"pointer":"default"}}>
-              <div style={{width:36,height:36,borderRadius:8,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{d.ikon||"📄"}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:12,fontWeight:700,color:C.light}}>{d.nama}</div>
-                <div style={{fontSize:11,color:C.muted,marginTop:2,lineHeight:1.4}}>{d.tentang}</div>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                {d.link&&<div style={{display:"flex",alignItems:"center",gap:3}}><ExternalLink size={12} color={C.blue} strokeWidth={2}/><span style={{fontSize:10,color:C.blue,fontWeight:700}}>Buka</span></div>}
-                {!d.link&&!isAdmin&&<ChevronRight size={16} color={C.muted} strokeWidth={1.8}/>}
-                {isAdmin&&<>
-                  <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();setEditing(d);}} style={{background:C.blueL,border:"none",borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Pencil size={10} strokeWidth={2}/> Edit</motion.button>
-                  <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();handleDelete(d.id);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.muted,padding:"4px",display:"flex"}}><Trash2 size={14} strokeWidth={1.8}/></motion.button>
-                </>}
+              style={{
+                background:C.card,
+                border:"1px solid "+C.line,
+                borderRadius:14,
+                padding:"16px",
+                cursor:d.link?"pointer":"default",
+                boxShadow:"0 2px 8px rgba(54,76,132,0.08)",
+              }}>
+              <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                {/* Ikon */}
+                <div style={{width:44,height:44,borderRadius:12,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
+                  {d.ikon||"📄"}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:800,color:C.light,lineHeight:1.4,marginBottom:4}}>{d.nama}</div>
+                  {d.tentang&&<div style={{fontSize:11,color:C.soft,lineHeight:1.5,marginBottom:8}}>{d.tentang}</div>}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                    {d.link
+                      ?<div style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px",background:C.blueL,borderRadius:8,cursor:"pointer"}}>
+                          <ExternalLink size={11} color={C.blue} strokeWidth={2}/>
+                          <span style={{fontSize:11,color:C.blue,fontWeight:700}}>Buka Dokumen</span>
+                        </div>
+                      :<div style={{fontSize:11,color:C.muted}}>Dokumen belum tersedia</div>
+                    }
+                    {isAdmin&&(
+                      <div style={{display:"flex",gap:6,flexShrink:0}}>
+                        <motion.button whileTap={{scale:.85}}
+                          onClick={e=>{e.stopPropagation();setEditing(d);}}
+                          style={{background:C.blueL,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}>
+                          <Pencil size={11} strokeWidth={2}/> Edit
+                        </motion.button>
+                        <motion.button whileTap={{scale:.85}}
+                          onClick={e=>{e.stopPropagation();handleDelete(d.id);}}
+                          style={{background:C.roseL,border:"none",borderRadius:7,padding:"5px 8px",cursor:"pointer",color:C.rose,display:"flex",alignItems:"center"}}>
+                          <Trash2 size={13} strokeWidth={1.8}/>
+                        </motion.button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </motion.div>
-          ))
-        }
-      </div>
+          ))}
+        </div>
+      )}
       {isAdmin&&adding&&<AddHukumSheet onAdd={item=>{setHukum(p=>[...p,item]);setAdding(false);}} onClose={()=>setAdding(false)}/>}
       {isAdmin&&editing&&<EditHukumSheet item={editing} onSave={u=>setHukum(p=>p.map(h=>h.id===u.id?u:h))} onClose={()=>setEditing(null)}/>}
     </div>
@@ -1235,7 +1273,7 @@ function AboutTab(){
         </div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
           <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Pangan</div>
         </div>
       </div>
 
@@ -1246,7 +1284,7 @@ function AboutTab(){
             <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
-          adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
+          adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
         </div>
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
@@ -1296,7 +1334,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2025 Deputi SDM Maritim
+        SIMPLER v2.0 · © 2025 Deputi Sumber Daya Maritim
       </div>
     </div>
   );
