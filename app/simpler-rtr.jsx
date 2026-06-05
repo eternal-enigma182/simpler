@@ -1230,7 +1230,7 @@ function HukumTab(){
                 <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();setEditing(d);}} style={{background:C.blueL,border:"none",borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Pencil size={10} strokeWidth={2}/> Edit</motion.button>
                 <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();handleDelete(d.id);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.muted,padding:"4px",display:"flex"}}><Trash2 size={14} strokeWidth={1.8}/></motion.button>
               </div>
-            </div>
+            </motion.div>
           ))
         }
       </div>
@@ -1458,7 +1458,7 @@ export default function App(){
                   </div>
                   <StepDots steps={e.steps} color={ks.c}/>
                   {next&&<div style={{marginTop:6,fontSize:10,color:C.muted,display:'flex',alignItems:'center',gap:3}}><ChevronRight size={10} strokeWidth={2}/>{next.nama}</div>}
-                </div>
+                </motion.div>
               );})}
               {filteredDb.length===0&&!loading&&<div style={{gridColumn:"1/-1"}}><Empty/></div>}
             </div>
