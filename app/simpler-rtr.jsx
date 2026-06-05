@@ -1326,7 +1326,6 @@ function AboutTab(){
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
           <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
-            <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
@@ -1334,7 +1333,6 @@ function AboutTab(){
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
           <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
-            <SimplerLogo size={14}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
