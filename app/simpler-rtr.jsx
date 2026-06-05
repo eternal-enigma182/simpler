@@ -144,7 +144,7 @@ const GS = () => (
       backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
       border-top:1px solid ${C.line};
       display:flex;align-items:center;justify-content:space-around;
-      padding:8px 0 12px;
+      padding:8px 0 4px;
       z-index:50;
     }
     .nav-item{
@@ -155,7 +155,7 @@ const GS = () => (
     }
     .nav-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
 
-    .content{flex:1;overflow-y:auto;padding-bottom:80px;}
+    .content{flex:1;overflow-y:auto;padding-bottom:68px;}
     .content.no-nav{padding-bottom:0;}
     .inner{max-width:960px;margin:0 auto;padding:16px;}
     @media(min-width:640px){.inner{padding:24px;}}
@@ -1326,6 +1326,7 @@ function AboutTab(){
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
           <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
+            <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
@@ -1333,6 +1334,7 @@ function AboutTab(){
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
           <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
+            <SimplerLogo size={14}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
