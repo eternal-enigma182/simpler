@@ -66,10 +66,10 @@ const C = {
 };
 
 const KS = {
-  "RZ KAW":  { c:"#364C84", l:"rgba(149,177,238,0.2)", icon:"🌊", label:"Rencana Zonasi Kawasan Antarwilayah" },
-  "RTR KSN": { c:"#5B4A9E", l:"rgba(149,177,238,0.15)", icon:"📍", label:"RTR Kawasan Strategis Nasional" },
-  "RTRWP":   { c:"#1E6B5A", l:"rgba(231,241,168,0.5)", icon:"🏛️", label:"RTR Wilayah Provinsi" },
-  "RTRWN":   { c:"#253660", l:"rgba(54,76,132,0.12)", icon:"🗺️", label:"RTR Wilayah Nasional" },
+  "RZ KAW":  { c:"#1D6FA4", l:"rgba(29,111,164,0.12)",  Icon:Waves,    label:"Rencana Zonasi Kawasan Antarwilayah" },
+  "RTR KSN": { c:"#5B4A9E", l:"rgba(91,74,158,0.12)",   Icon:MapPin,   label:"RTR Kawasan Strategis Nasional" },
+  "RTRWP":   { c:"#1E6B5A", l:"rgba(30,107,90,0.12)",   Icon:Landmark, label:"RTR Wilayah Provinsi" },
+  "RTRWN":   { c:"#253660", l:"rgba(37,54,96,0.12)",    Icon:Globe,    label:"RTR Wilayah Nasional" },
 };
 
 const ST = {
@@ -342,12 +342,54 @@ function StepDots({steps, color}){
   );
 }
 
+/* Animated category icon — hover triggers motion */
+function KatIcon({k, size=28, bg=true}){
+  const ks=KS[k];
+  const [hovered,setHovered]=useState(false);
+  const animMap={
+    "RZ KAW":{rotate:0, y:hovered?-3:0, scale:hovered?1.15:1},
+    "RTR KSN":{rotate:0, y:hovered?-4:0, scale:hovered?1.2:1},
+    "RTRWP":{rotate:0, y:hovered?-2:0, scale:hovered?1.1:1},
+    "RTRWN":{rotate:hovered?180:0, scale:hovered?1.1:1, y:0},
+  };
+  const anim=animMap[k]||{y:0,scale:1,rotate:0};
+  return(
+    <motion.div
+      onHoverStart={()=>setHovered(true)}
+      onHoverEnd={()=>setHovered(false)}
+      style={{
+        width:bg?size+16:size, height:bg?size+16:size,
+        borderRadius:bg?12:0,
+        background:bg?ks.l:"transparent",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        flexShrink:0,cursor:"default",
+      }}>
+      <motion.div
+        animate={{y:anim.y, scale:anim.scale, rotate:anim.rotate}}
+        transition={{type:"spring",stiffness:400,damping:20}}>
+        <ks.Icon size={size} color={ks.c} strokeWidth={1.8}/>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function KatChip({k, size="sm"}){
   const ks=KS[k];
+  const [hovered,setHovered]=useState(false);
   return(
-    <span className="chip" style={{background:ks.l,color:ks.c,fontSize:size==="lg"?11:9}}>
-      {ks.icon} {k}
-    </span>
+    <motion.span
+      className="chip"
+      onHoverStart={()=>setHovered(true)}
+      onHoverEnd={()=>setHovered(false)}
+      style={{background:ks.l,color:ks.c,fontSize:size==="lg"?11:9,gap:5}}>
+      <motion.div
+        animate={{scale:hovered?1.2:1,rotate:k==="RTRWN"&&hovered?180:0}}
+        transition={{type:"spring",stiffness:400,damping:18}}
+        style={{display:"flex",alignItems:"center"}}>
+        <ks.Icon size={size==="lg"?12:10} strokeWidth={2} color={ks.c}/>
+      </motion.div>
+      {k}
+    </motion.span>
   );
 }
 
@@ -411,14 +453,14 @@ function Sheet({children, onClose, title, subtitle}){
 }
 
 /* ══════════════════════════════════════════════════
-   NAV BAR — Lucide icons + Motion
+   NAV BAR — Lucide icons + Motion hover animations
 ══════════════════════════════════════════════════ */
 const NAV5 = [
-  {id:"home",    Icon:Home,     label:"Beranda"},
-  {id:"status",  Icon:BarChart2,label:"Status"},
-  {id:"produk",  Icon:FileText, label:"Produk"},
-  {id:"hukum",   Icon:Scale,    label:"Hukum"},
-  {id:"tentang", Icon:Info,     label:"Tentang"},
+  {id:"home",    Icon:Home,     label:"Beranda",  anim:{hover:{y:-3,scale:1.15}}},
+  {id:"status",  Icon:BarChart2,label:"Status",   anim:{hover:{scaleY:1.2,y:-2}}},
+  {id:"produk",  Icon:FileText, label:"Produk",   anim:{hover:{rotate:[-2,2,-1,0],scale:1.1}}},
+  {id:"hukum",   Icon:Scale,    label:"Hukum",    anim:{hover:{rotate:[0,-10,10,0],scale:1.1}}},
+  {id:"tentang", Icon:Info,     label:"Tentang",  anim:{hover:{scale:1.2,y:-2}}},
 ];
 
 function NavBar({active, onTab}){
@@ -430,21 +472,29 @@ function NavBar({active, onTab}){
           <motion.div key={n.id}
             className={"nav-item"+(on?" on":"")}
             onClick={()=>onTab(n.id)}
-            whileTap={{scale:.88}}
+            whileTap={{scale:.85}}
             style={{position:"relative"}}>
             {on&&(
               <motion.div layoutId="nav-pill"
                 style={{position:"absolute",inset:0,background:C.skyL,borderRadius:10}}
-                transition={{type:"spring",stiffness:400,damping:32}}/>
+                transition={{type:"spring",stiffness:380,damping:30}}/>
             )}
             <motion.div
-              animate={{y: on ? -1 : 0, scale: on ? 1.1 : 1}}
-              transition={{type:"spring",stiffness:400,damping:28}}
+              whileHover={n.anim.hover}
+              animate={{y:on?-1:0, scale:on?1.08:1}}
+              transition={{type:"spring",stiffness:380,damping:22}}
               style={{position:"relative",zIndex:1}}>
-              <n.Icon size={20} strokeWidth={on?2.5:1.8} color={on?C.blue:C.muted}/>
+              <n.Icon
+                size={20}
+                strokeWidth={on?2.5:1.8}
+                color={on?C.blue:C.muted}/>
             </motion.div>
-            <span className="nav-label" style={{color:on?C.blue:C.muted,position:"relative",zIndex:1,
-              fontWeight:on?800:600}}>
+            <span className="nav-label" style={{
+              color:on?C.blue:C.muted,
+              position:"relative",zIndex:1,
+              fontWeight:on?800:600,
+              transition:"color .2s"
+            }}>
               {n.label}
             </span>
           </motion.div>
@@ -657,7 +707,7 @@ function AddSheet({onAdd, onClose}){
                 <div key={k} onClick={()=>setKat(k)}
                   style={{padding:"12px 14px",borderRadius:12,border:"1px solid "+(on?ks.c:C.line),
                     background:on?ks.l:"transparent",cursor:"pointer",transition:"all .15s"}}>
-                  <div style={{fontSize:20,marginBottom:5}}>{ks.icon}</div>
+                  <KatIcon k={k} size={22} bg={false}/>
                   <div style={{fontSize:11,fontWeight:800,color:on?ks.c:C.soft,letterSpacing:".03em"}}>{k}</div>
                 </div>
               );
@@ -862,7 +912,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
                 style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",borderBottom:i<3?"1px solid "+C.line:"none",transition:"background .12s"}}
                 whileHover={{background:C.surface}}
                 whileTap={{background:C.surface2}}>
-                <div style={{width:38,height:38,borderRadius:10,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{ks.icon}</div>
+                <KatIcon k={k} size={18} />
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
                     <span style={{fontSize:13,fontWeight:700,color:C.light}}>{k}</span>
@@ -1003,7 +1053,7 @@ function StatusTab({data, loading, initKat}){
           const p=es.length?Math.round(done/es.length*100):0;
           return(
             <motion.div key={k} className="card card-hover" onClick={()=>setKat(k)} style={{padding:"18px 16px"}} whileHover={{y:-3,boxShadow:"0 8px 24px rgba(54,76,132,0.15)"}} whileTap={{scale:.97}} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:KATEGORI.indexOf(k)*0.07,duration:.3,ease:[.16,1,.3,1]}}>
-              <div style={{fontSize:32,marginBottom:10}}>{ks.icon}</div>
+              <div style={{marginBottom:10}}><KatIcon k={k} size={28} bg={false}/></div>
               <KatChip k={k}/>
               <div style={{marginTop:12}}>
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,color:ks.c,lineHeight:1}}>{done}<span style={{fontSize:13,color:C.muted,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:500}}>/{es.length}</span></div>
@@ -1082,7 +1132,7 @@ function ProdukTab({data, loading}){
           const cnt=data.filter(d=>d.kategori===k&&d.produk).length;
           return(
             <div key={k} style={{background:C.card,border:"1px solid "+C.line,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:32,height:32,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ks.icon}</div>
+              <KatIcon k={k} size={16} />
               <div>
                 <div style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:ks.c,lineHeight:1}}>{cnt}</div>
                 <div style={{fontSize:9,color:C.muted,fontWeight:700,letterSpacing:".06em"}}>{k}</div>
@@ -1099,7 +1149,7 @@ function ProdukTab({data, loading}){
             const ks=KS[d.kategori];
             return(
               <motion.div key={d.id} className="t-row" whileTap={{scale:.99}} onClick={()=>d.link_produk&&window.open(d.link_produk,"_blank")} style={{cursor:d.link_produk?"pointer":"default"}}>
-                <div style={{width:36,height:36,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ks.icon}</div>
+                <KatIcon k={d.kategori} size={16} />
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:12,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.nama}</div>
                   <div style={{fontSize:11,color:ks.c,fontWeight:600,marginTop:2}}>{d.produk}</div>
@@ -1307,7 +1357,7 @@ function AboutTab(){
             const ks=KS[k];
             return(
               <div key={k} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 12px",background:C.bg,borderRadius:10}}>
-                <div style={{fontSize:22,flexShrink:0}}>{ks.icon}</div>
+                <KatIcon k={k} size={20} bg={false}/>
                 <div style={{flex:1}}>
                   <div style={{fontSize:12,fontWeight:700,color:ks.c}}>{k}</div>
                   <div style={{fontSize:11,color:C.soft,marginTop:1}}>{ks.label}</div>
