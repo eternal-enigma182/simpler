@@ -1,6 +1,15 @@
 "use client";
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabase";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Home, BarChart2, FileText, Scale, Info,
+  Settings, LogOut, Lock, ChevronRight,
+  MapPin, Waves, Landmark, Globe, Download,
+  CheckCircle2, Clock, Circle, ArrowLeft,
+  Plus, Pencil, Trash2, Search, ExternalLink,
+  Building2, ScrollText, X, TriangleAlert
+} from "lucide-react";
 
 /* ══════════════════════════════════════════════════
    DESIGN TOKENS — Color Palette #04
@@ -64,9 +73,9 @@ const KS = {
 };
 
 const ST = {
-  Selesai: { c:"#2D7A3A", l:"rgba(231,241,168,0.6)", dot:"#7BA02A", ic:"✓" },
-  Proses:  { c:"#8A6500", l:"rgba(255,200,80,0.15)", dot:"#C8A000", ic:"◑" },
-  Belum:   { c:"#8A98BA", l:"rgba(54,76,132,0.06)", dot:"#B0BАДА", ic:"○" },
+  Selesai: { c:"#2D7A3A", l:"rgba(231,241,168,0.6)", dot:"#7BA02A", ic:"✓", Icon:CheckCircle2 },
+  Proses:  { c:"#8A6500", l:"rgba(255,200,80,0.15)", dot:"#C8A000", ic:"◑", Icon:Clock },
+  Belum:   { c:"#8A98BA", l:"rgba(54,76,132,0.06)", dot:"#B0BADA", ic:"○", Icon:Circle },
 };
 
 const KATEGORI = ["RZ KAW","RTR KSN","RTRWP","RTRWN"];
@@ -148,9 +157,9 @@ const GS = () => (
       display:flex;flex-direction:column;align-items:center;gap:4px;
       padding:6px 16px;cursor:pointer;border-radius:10px;
       transition:all .15s;-webkit-tap-highlight-color:transparent;
-      min-width:64px;
+      min-width:64px;position:relative;
     }
-    .nav-item.on{background:${C.skyL};}
+    .nav-item.on{}
     .nav-icon{font-size:20px;transition:transform .15s;}
     .nav-item.on .nav-icon{transform:scale(1.1);}
     .nav-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
@@ -344,34 +353,45 @@ function KatChip({k, size="sm"}){
 
 function StatusChip({st}){
   const s=ST[st]||ST.Belum;
+  const {Icon}=s;
   return(
-    <span className="chip" style={{background:s.l,color:s.c}}>
-      {s.ic} {st}
+    <span className="chip" style={{background:s.l,color:s.c,gap:4}}>
+      <Icon size={10} strokeWidth={2.5}/>{st}
     </span>
   );
 }
 
 function Spinner(){
-  return <div style={{display:"flex",justifyContent:"center",padding:"48px 0"}}><div className="spinner"/></div>;
+  return(
+    <div style={{display:"flex",justifyContent:"center",padding:"48px 0"}}>
+      <motion.div animate={{rotate:360}} transition={{duration:.7,repeat:Infinity,ease:"linear"}}>
+        <Circle size={24} color={C.sky} strokeWidth={2}/>
+      </motion.div>
+    </div>
+  );
 }
 
-function Empty({icon="🔍",text="Tidak ada data"}){
+function Empty({icon,text="Tidak ada data"}){
   return(
     <div style={{textAlign:"center",padding:"48px 20px",color:C.muted}}>
-      <div style={{fontSize:40,marginBottom:12,opacity:.4}}>{icon}</div>
+      <Search size={36} color={C.line2} strokeWidth={1.5} style={{margin:"0 auto 12px"}}/>
       <div style={{fontSize:14,fontWeight:600}}>{text}</div>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════
-   SHEET WRAPPER
+   SHEET WRAPPER — AnimatePresence spring
 ══════════════════════════════════════════════════ */
 function Sheet({children, onClose, title, subtitle}){
   return(
-    <>
-      <div className="overlay" onClick={onClose}/>
-      <div className="sheet">
+    <AnimatePresence>
+      <motion.div key="overlay" className="overlay"
+        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+        onClick={onClose}/>
+      <motion.div key="sheet" className="sheet"
+        initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}}
+        transition={{type:"spring",stiffness:320,damping:36,mass:.9}}>
         <div className="sheet-handle"/>
         {(title||subtitle)&&(
           <div style={{padding:"16px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexShrink:0}}>
@@ -379,35 +399,55 @@ function Sheet({children, onClose, title, subtitle}){
               {title&&<div style={{fontSize:17,fontWeight:800,color:C.light}}>{title}</div>}
               {subtitle&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>{subtitle}</div>}
             </div>
-            <button className="btn-icon" onClick={onClose} style={{marginTop:-2}}>✕</button>
+            <motion.button whileTap={{scale:.88}} className="btn-icon" onClick={onClose} style={{marginTop:-2}}>
+              <X size={16} strokeWidth={2} color={C.soft}/>
+            </motion.button>
           </div>
         )}
         <div className="sheet-scroll">{children}</div>
-      </div>
-    </>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
 /* ══════════════════════════════════════════════════
-   NAV BAR
+   NAV BAR — Lucide icons + Motion
 ══════════════════════════════════════════════════ */
-const NAV = [
-  {id:"home",   icon:"⊙", label:"Beranda"},
-  {id:"status", icon:"◫", label:"Status"},
-  {id:"produk", icon:"◈", label:"Produk"},
-  {id:"hukum",  icon:"◉", label:"Hukum"},
+const NAV5 = [
+  {id:"home",    Icon:Home,     label:"Beranda"},
+  {id:"status",  Icon:BarChart2,label:"Status"},
+  {id:"produk",  Icon:FileText, label:"Produk"},
+  {id:"hukum",   Icon:Scale,    label:"Hukum"},
+  {id:"tentang", Icon:Info,     label:"Tentang"},
 ];
 
 function NavBar({active, onTab}){
   return(
     <div className="nav-bar">
-      {NAV.map(n=>{
-        const on = active===n.id;
+      {NAV5.map(n=>{
+        const on=active===n.id;
         return(
-          <div key={n.id} className={"nav-item"+(on?" on":"")} onClick={()=>onTab(n.id)}>
-            <div className="nav-icon" style={{color:on?C.blue:C.muted,fontFamily:"monospace",fontWeight:700,fontSize:18}}>{n.icon}</div>
-            <span className="nav-label" style={{color:on?C.blue:C.muted}}>{n.label}</span>
-          </div>
+          <motion.div key={n.id}
+            className={"nav-item"+(on?" on":"")}
+            onClick={()=>onTab(n.id)}
+            whileTap={{scale:.88}}
+            style={{position:"relative"}}>
+            {on&&(
+              <motion.div layoutId="nav-pill"
+                style={{position:"absolute",inset:0,background:C.skyL,borderRadius:10}}
+                transition={{type:"spring",stiffness:400,damping:32}}/>
+            )}
+            <motion.div
+              animate={{y: on ? -1 : 0, scale: on ? 1.1 : 1}}
+              transition={{type:"spring",stiffness:400,damping:28}}
+              style={{position:"relative",zIndex:1}}>
+              <n.Icon size={20} strokeWidth={on?2.5:1.8} color={on?C.blue:C.muted}/>
+            </motion.div>
+            <span className="nav-label" style={{color:on?C.blue:C.muted,position:"relative",zIndex:1,
+              fontWeight:on?800:600}}>
+              {n.label}
+            </span>
+          </motion.div>
         );
       })}
     </div>
@@ -424,7 +464,9 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
       <div className="topbar">
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           {onBack&&(
-            <button className="btn-icon" onClick={onBack} style={{fontSize:18,color:C.blue,background:C.blueL}}>←</button>
+            <motion.button whileTap={{scale:.88}} className="btn-icon" onClick={onBack} style={{color:C.blue,background:C.blueL}}>
+              <ArrowLeft size={18} strokeWidth={2}/>
+            </motion.button>
           )}
           <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{title}</span>
         </div>
@@ -506,8 +548,8 @@ function DetailSheet({entry, onEdit, onClose}){
         })}
       </div>
       <div style={{padding:"16px 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
-        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Tutup</button>
-        <button className="btn-primary" onClick={onEdit} style={{flex:2}}>✏️ Edit Data</button>
+        <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Tutup</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={onEdit} style={{flex:2,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Pencil size={14}/> Edit Data</motion.button>
       </div>
     </Sheet>
   );
@@ -574,8 +616,8 @@ function EditSheet({entry, onSave, onClose}){
         ))}
       </div>
       <div style={{padding:"12px 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
-        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
-        <button className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"Simpan"}</button>
+        <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"Simpan"}</motion.button>
       </div>
     </Sheet>
   );
@@ -628,7 +670,7 @@ function AddSheet({onAdd, onClose}){
         </div>
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))"}}>
-        <button className="btn-primary" onClick={handleAdd} style={{opacity:saving?.7:1}}>{saving?"Menambahkan...":"+ Tambah Entri"}</button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleAdd} style={{opacity:saving?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Plus size={15}/> {saving?"Menambahkan...":"Tambah Entri"}</motion.button>
       </div>
     </Sheet>
   );
@@ -812,10 +854,14 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
             const done=es.filter(d=>calcP(d)===100).length;
             const p=es.length?Math.round(done/es.length*100):0;
             return(
-              <div key={k} onClick={()=>onGoStatus(k)}
+              <motion.div key={k}
+                initial={{opacity:0,x:-10}}
+                animate={{opacity:1,x:0}}
+                transition={{delay:i*0.06,duration:.3,ease:[.16,1,.3,1]}}
+                onClick={()=>onGoStatus(k)}
                 style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",borderBottom:i<3?"1px solid "+C.line:"none",transition:"background .12s"}}
-                onMouseEnter={e=>e.currentTarget.style.background=C.surface}
-                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                whileHover={{background:C.surface}}
+                whileTap={{background:C.surface2}}>
                 <div style={{width:38,height:38,borderRadius:10,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{ks.icon}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
@@ -824,8 +870,8 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
                   </div>
                   <PBar p={p} color={ks.c} h={4}/>
                 </div>
-                <span style={{color:C.muted,fontSize:14,flexShrink:0}}>›</span>
-              </div>
+                <ChevronRight size={16} color={C.muted} strokeWidth={1.8}/>
+              </motion.div>
             );
           })}
         </div>
@@ -836,21 +882,20 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
         <div>
           <div className="sec-hdr">
             <div className="label">Terbaru Ditetapkan</div>
-            <button onClick={onGoDb} style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer"}}>Semua →</button>
+            <motion.button whileTap={{scale:.9}} onClick={onGoDb} style={{background:"none",border:"none",color:C.blue,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:3}}>Semua <ChevronRight size={13} strokeWidth={2.5}/></motion.button>
           </div>
           <div className="card">
             {recent.map((e,i)=>{
               const ks=KS[e.kategori];
               const tgl=getTanggalPenetapan(e);
               return(
-                <div key={e.id} style={{
-                  display:"flex",alignItems:"center",gap:14,padding:"13px 16px",
-                  borderBottom:i<recent.length-1?"1px solid "+C.line:"none",
-                  cursor:"pointer",transition:"background .12s"
-                }}
-                  onMouseEnter={e=>e.currentTarget.style.background=C.surface}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                  {/* rank number */}
+                <motion.div key={e.id}
+                  initial={{opacity:0,y:8}}
+                  animate={{opacity:1,y:0}}
+                  transition={{delay:i*0.05,duration:.3,ease:[.16,1,.3,1]}}
+                  style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderBottom:i<recent.length-1?"1px solid "+C.line:"none",cursor:"pointer"}}
+                  whileHover={{background:C.surface}}
+                  whileTap={{scale:.99}}>
                   <div style={{width:28,height:28,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:ks.c,flexShrink:0}}>{i+1}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:13,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nama}</div>
@@ -861,11 +906,11 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
                   </div>
                   <div style={{textAlign:"right",flexShrink:0}}>
                     {tgl
-                      ?<div style={{fontSize:10,color:C.green,fontWeight:700}}>📅 {tgl}</div>
-                      :<div style={{fontSize:11,color:ks.c,fontWeight:800}}>✓ Ditetapkan</div>
+                      ?<div style={{fontSize:10,color:C.lime,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><CheckCircle2 size={10} strokeWidth={2}/>{tgl}</div>
+                      :<div style={{fontSize:11,color:ks.c,fontWeight:800,display:"flex",alignItems:"center",gap:3}}><CheckCircle2 size={11} strokeWidth={2}/> Ditetapkan</div>
                     }
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -890,7 +935,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
 
         <div className="label" style={{marginBottom:8}}>Tentang SIMPLER</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Pangan.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai dashboard monitoring progres penyelesaian perencanaan ruang laut yang diinisiasi oleh <strong style={{color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</strong>, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
         </div>
         <div style={{marginTop:8,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi ini memuat informasi progres penetapan <strong style={{color:C.light}}>RTRWN, RTR KSN, RZ KAW,</strong> dan <strong style={{color:C.light}}>RTRWP</strong> secara terpadu dan dapat diakses oleh publik.
@@ -901,10 +946,10 @@ function HomeTab({data, loading, onGoStatus, onGoDb}){
 
         {/* Instansi */}
         <div style={{marginTop:14,padding:"10px 12px",background:C.bg,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:18}}>🏛️</span>
+          <Landmark size={18} color={C.blue} strokeWidth={1.8}/>
           <div>
             <div style={{fontSize:11,fontWeight:700,color:C.light}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Pangan</div>
+            <div style={{fontSize:10,color:C.muted,marginTop:1}}>Kemenko Bidang Kemaritiman dan Investasi</div>
           </div>
         </div>
       </div>
@@ -938,13 +983,13 @@ function StatusTab({data, loading, initKat}){
           const done=displayData.filter(d=>d.kategori===k&&calcP(d)===100).length;
           const p=Math.round(done/max*100);
           return(
-            <div key={k} style={{marginBottom:14}}>
+            <motion.div key={k} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:["RTRWN","RTR KSN","RZ KAW","RTRWP"].indexOf(k)*0.07}} style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
                 <span style={{fontSize:12,fontWeight:600,color:C.light}}>{label}</span>
                 <span style={{fontSize:12,fontWeight:700,color:ks.c}}>{done}<span style={{color:C.muted,fontWeight:400}}>/{max}</span></span>
               </div>
               <PBar p={p} color={ks.c} h={5}/>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -957,7 +1002,7 @@ function StatusTab({data, loading, initKat}){
           const done=es.filter(d=>calcP(d)===100).length;
           const p=es.length?Math.round(done/es.length*100):0;
           return(
-            <div key={k} className="card card-hover" onClick={()=>setKat(k)} style={{padding:"18px 16px"}}>
+            <motion.div key={k} className="card card-hover" onClick={()=>setKat(k)} style={{padding:"18px 16px"}} whileHover={{y:-3,boxShadow:"0 8px 24px rgba(54,76,132,0.15)"}} whileTap={{scale:.97}} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:KATEGORI.indexOf(k)*0.07,duration:.3,ease:[.16,1,.3,1]}}>
               <div style={{fontSize:32,marginBottom:10}}>{ks.icon}</div>
               <KatChip k={k}/>
               <div style={{marginTop:12}}>
@@ -965,7 +1010,7 @@ function StatusTab({data, loading, initKat}){
                 <div style={{marginTop:8}}><PBar p={p} color={ks.c} h={4}/></div>
                 <div style={{marginTop:6}}><StepDots steps={es.flatMap(e=>e.steps).slice(0,8)} color={ks.c}/></div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -979,21 +1024,21 @@ function StatusTab({data, loading, initKat}){
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:12}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
-        <button className="btn-icon" onClick={()=>setKat(null)} style={{fontSize:18}}>←</button>
+        <motion.button whileTap={{scale:.88}} className="btn-icon" onClick={()=>setKat(null)} style={{color:C.blue,background:C.blueL}}><ArrowLeft size={18} strokeWidth={2}/></motion.button>
         <div style={{flex:1}}>
           <KatChip k={kat} size="lg"/>
           <div style={{fontSize:11,color:C.muted,marginTop:3}}>{done}/{entries.length} ditetapkan</div>
         </div>
       </div>
-      {loading?<Spinner/>:entries.map(e=>{
+      {loading?<Spinner/>:entries.map((e,i)=>{
         const p=calcP(e);
         const next=e.steps.find(s=>s.status!=="Selesai");
         return(
-          <div key={e.id} className="entry-card" onClick={()=>setDetail(e)}>
+          <motion.div key={e.id} className="entry-card" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.04,duration:.25,ease:[.16,1,.3,1]}} whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}} onClick={()=>setDetail(e)}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:15,fontWeight:800,color:C.light,lineHeight:1.3}}>{e.nama}</div>
-                {e.produk&&<div style={{fontSize:10,color:ks.c,fontWeight:600,marginTop:4}}>📎 {e.produk}</div>}
+                {e.produk&&<div style={{fontSize:10,color:ks.c,fontWeight:600,marginTop:4,display:'flex',alignItems:'center',gap:3}}><FileText size={9} strokeWidth={2}/>{e.produk}</div>}
               </div>
               <div style={{position:"relative",flexShrink:0}}>
                 <CircProgress p={p} color={ks.c} size={44} stroke={3.5}/>
@@ -1005,10 +1050,10 @@ function StatusTab({data, loading, initKat}){
             <StepDots steps={e.steps} color={ks.c}/>
             {next&&(
               <div style={{marginTop:8,fontSize:10,color:C.muted}}>
-                ⏭ <span style={{color:C.soft}}>{next.nama}</span>
+                <span style={{color:C.soft,display:"flex",alignItems:"center",gap:4}}><ChevronRight size={10} strokeWidth={2} color={C.muted}/>{next.nama}</span>
               </div>
             )}
-          </div>
+          </motion.div>
         );
       })}
       {detail&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)}/>}
@@ -1026,7 +1071,7 @@ function ProdukTab({data, loading}){
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{position:"relative"}}>
-        <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
+        <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
         <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari produk hukum..." style={{paddingLeft:36}}/>
       </div>
 
@@ -1053,17 +1098,17 @@ function ProdukTab({data, loading}){
           items.map((d,i)=>{
             const ks=KS[d.kategori];
             return(
-              <div key={d.id} className="t-row" onClick={()=>d.link_produk&&window.open(d.link_produk,"_blank")} style={{cursor:d.link_produk?"pointer":"default"}}>
+              <motion.div key={d.id} className="t-row" whileTap={{scale:.99}} onClick={()=>d.link_produk&&window.open(d.link_produk,"_blank")} style={{cursor:d.link_produk?"pointer":"default"}}>
                 <div style={{width:36,height:36,borderRadius:8,background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ks.icon}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:12,fontWeight:700,color:C.light,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.nama}</div>
                   <div style={{fontSize:11,color:ks.c,fontWeight:600,marginTop:2}}>{d.produk}</div>
                 </div>
                 {d.link_produk
-                  ?<span style={{fontSize:11,color:C.blue,fontWeight:700,flexShrink:0}}>Buka ↗</span>
-                  :<span style={{color:C.muted,fontSize:14}}>›</span>
+                  ?<div style={{display:"flex",alignItems:"center",gap:3,flexShrink:0}}><ExternalLink size={11} color={C.blue} strokeWidth={2}/><span style={{fontSize:10,color:C.blue,fontWeight:700}}>Buka</span></div>
+                  :<ChevronRight size={14} color={C.muted} strokeWidth={1.8}/>
                 }
-              </div>
+              </motion.div>
             );
           })
         }
@@ -1098,7 +1143,7 @@ function AddHukumSheet({onAdd, onClose}){
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
-        <button className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"+ Tambah"}</button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Plus size={14}/>{saving?"Menyimpan...":"Tambah"}</motion.button>
       </div>
     </Sheet>
   );
@@ -1124,8 +1169,8 @@ function EditHukumSheet({item, onSave, onClose}){
         <div><div className="label" style={{marginBottom:6}}>Link Google Drive (PDF)</div><input value={f.link} onChange={e=>setF(p=>({...p,link:e.target.value}))} className="field" placeholder="https://drive.google.com/file/d/..."/></div>
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
-        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
-        <button className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"Simpan"}</button>
+        <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleSave} style={{flex:2,opacity:saving?.7:1}}>{saving?"Menyimpan...":"Simpan"}</motion.button>
       </div>
     </Sheet>
   );
@@ -1160,7 +1205,7 @@ function HukumTab(){
       {/* Search + tombol tambah */}
       <div style={{display:"flex",gap:8}}>
         <div style={{position:"relative",flex:1}}>
-          <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
+          <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
           <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari peraturan..." style={{paddingLeft:36}}/>
         </div>
         <button onClick={()=>setAdding(true)}
@@ -1172,7 +1217,7 @@ function HukumTab(){
       <div className="card">
         {loading?<Spinner/>:fl.length===0?<Empty icon="⚖️" text="Tidak ditemukan"/>:
           fl.map((d,i)=>(
-            <div key={d.id} className="t-row"
+            <motion.div key={d.id} className="t-row" whileTap={{scale:.99}} whileHover={{background:C.bg2}}
               onClick={()=>d.link?window.open(d.link,"_blank"):null}
               style={{cursor:d.link?"pointer":"default"}}>
               <div style={{width:36,height:36,borderRadius:8,background:C.blueL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{d.ikon||"📄"}</div>
@@ -1181,11 +1226,9 @@ function HukumTab(){
                 <div style={{fontSize:11,color:C.muted,marginTop:2,lineHeight:1.4}}>{d.tentang}</div>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                {d.link&&<span style={{fontSize:11,color:C.blue,fontWeight:700}}>Buka ↗</span>}
-                <button onClick={e=>{e.stopPropagation();setEditing(d);}}
-                  style={{background:C.surface,border:"1px solid "+C.line,borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.soft,fontWeight:700}}>Edit</button>
-                <button onClick={e=>{e.stopPropagation();handleDelete(d.id);}}
-                  style={{background:"transparent",border:"none",fontSize:14,cursor:"pointer",color:C.muted,padding:"4px"}}>🗑</button>
+                {d.link&&<div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}><ExternalLink size={12} color={C.blue} strokeWidth={2}/><span style={{fontSize:10,color:C.blue,fontWeight:700}}>Buka</span></div>}
+                <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();setEditing(d);}} style={{background:C.blueL,border:"none",borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Pencil size={10} strokeWidth={2}/> Edit</motion.button>
+                <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();handleDelete(d.id);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.muted,padding:"4px",display:"flex"}}><Trash2 size={14} strokeWidth={1.8}/></motion.button>
               </div>
             </div>
           ))
@@ -1225,14 +1268,14 @@ function AboutTab(){
         <div style={{fontSize:11,color:C.muted,marginTop:4,letterSpacing:".06em",textTransform:"uppercase",lineHeight:1.6}}>Sistem Informasi Monitoring Penyelesaian<br/>Penataan Ruang Laut</div>
         <div style={{marginTop:16,padding:"10px 16px",background:C.blueL,borderRadius:10,display:"inline-block"}}>
           <div style={{fontSize:11,color:C.blue,fontWeight:700}}>Deputi Bidang Koordinasi Sumber Daya Maritim</div>
-          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Pangan</div>
+          <div style={{fontSize:11,color:C.soft,marginTop:2}}>Kemenko Bidang Kemaritiman dan Investasi</div>
         </div>
       </div>
 
       <div className="card" style={{padding:"16px"}}>
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
-          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
+          SIMPLER adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Kemaritiman dan Investasi.
         </div>
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi SIMPLER terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
@@ -1319,13 +1362,11 @@ function LoginSheet({onLogin, onClose}){
           <div className="label" style={{marginBottom:6}}>Password</div>
           <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} className="field" placeholder="••••••••" type="password"/>
         </div>
-        {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8}}>⚠️ {err}</div>}
+        {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8}} style={{display:"flex",alignItems:"center",gap:6}}><TriangleAlert size={14}/>{err}</div>}
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
-        <button className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</button>
-        <button className="btn-primary" onClick={handleLogin} style={{flex:2,opacity:loading?.7:1}}>
-          {loading?"Masuk...":"🔐 Masuk"}
-        </button>
+        <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
+        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={handleLogin} style={{flex:2,opacity:loading?.7:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Lock size={14}/> {loading?"Masuk...":"Masuk"}</motion.button>
       </div>
     </Sheet>
   );
@@ -1388,14 +1429,14 @@ export default function App(){
       <AppShell title="Dashboard Admin" hideNav onBack={()=>setShowDb(false)}
         rightBtn={
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <button className="btn-icon" onClick={()=>exportCSV(data)} style={{fontSize:14,color:C.blue}}>↓</button>
-            <button onClick={()=>setAdding(true)} style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer"}}>+ Tambah</button>
-            <button onClick={handleLogout} style={{height:36,padding:"0 12px",background:C.roseL,color:C.rose,border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer"}}>Keluar</button>
+            <motion.button whileTap={{scale:.9}} className="btn-icon" onClick={()=>exportCSV(data)} style={{color:C.blue}}><Download size={15} strokeWidth={2}/></motion.button>
+            <motion.button whileTap={{scale:.95}} onClick={()=>setAdding(true)} style={{height:36,padding:"0 14px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Plus size={14}/> Tambah</motion.button>
+            <motion.button whileTap={{scale:.9}} onClick={handleLogout} style={{height:36,padding:"0 12px",background:C.roseL,color:C.rose,border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><LogOut size={13}/> Keluar</motion.button>
           </div>
         }>
         <div style={{background:C.bg,borderBottom:"1px solid "+C.line,padding:"12px 16px",position:"sticky",top:52,zIndex:30}}>
           <div style={{position:"relative",marginBottom:10}}>
-            <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:C.muted}}>⌕</span>
+            <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
             <input value={dbSearch} onChange={e=>setDbSearch(e.target.value)} className="field" placeholder="Cari kawasan..." style={{paddingLeft:36}}/>
           </div>
           <div className="scroll-x" style={{marginBottom:8}}>
@@ -1409,14 +1450,14 @@ export default function App(){
         <div className="inner">
           {loading?<Spinner/>:(
             <div className="card-grid">
-              {filteredDb.map(e=>{const p=calcP(e);const ks=KS[e.kategori];const next=e.steps.find(s=>s.status!=="Selesai");return(
-                <div key={e.id} className="entry-card" onClick={()=>setDetail(e)}>
+              {filteredDb.map((e,i)=>{const p=calcP(e);const ks=KS[e.kategori];const next=e.steps.find(s=>s.status!=="Selesai");return(
+                <motion.div key={e.id} className="entry-card" initial={{opacity:0,scale:.97}} animate={{opacity:1,scale:1}} transition={{delay:Math.min(i*0.03,.3),duration:.25}} whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}} onClick={()=>setDetail(e)}>
                   <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
                     <div style={{flex:1,minWidth:0}}><KatChip k={e.kategori}/><div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div></div>
                     <div style={{position:"relative",flexShrink:0}}><CircProgress p={p} color={ks.c} size={40} stroke={3}/><div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:8,fontWeight:800,color:p===100?ks.c:C.soft}}>{p}%</span></div></div>
                   </div>
                   <StepDots steps={e.steps} color={ks.c}/>
-                  {next&&<div style={{marginTop:6,fontSize:10,color:C.muted}}>⏭ {next.nama}</div>}
+                  {next&&<div style={{marginTop:6,fontSize:10,color:C.muted,display:'flex',alignItems:'center',gap:3}}><ChevronRight size={10} strokeWidth={2}/>{next.nama}</div>}
                 </div>
               );})}
               {filteredDb.length===0&&!loading&&<div style={{gridColumn:"1/-1"}}><Empty/></div>}
@@ -1430,47 +1471,46 @@ export default function App(){
     </>
   );
 
-  const NAV5=[
-    {id:"home",icon:"⊙",label:"Beranda"},
-    {id:"status",icon:"◫",label:"Status"},
-    {id:"produk",icon:"◈",label:"Produk"},
-    {id:"hukum",icon:"◉",label:"Hukum"},
-    {id:"tentang",icon:"ℹ",label:"Tentang"},
-  ];
   const titles={home:"SIMPLER",status:"Status RTR",produk:"Produk Hukum",hukum:"Dasar Hukum",tentang:"Tentang SIMPLER"};
   const rightBtn=isAdmin
     ?<div style={{display:"flex",gap:6,alignItems:"center"}}>
-        <button className="btn-icon" onClick={()=>setShowDb(true)} style={{fontSize:14,color:C.blue,background:C.blueL,fontWeight:700}}>⚙</button>
-        <button onClick={handleLogout} style={{height:32,padding:"0 10px",background:C.roseL,color:C.rose,border:"none",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>Keluar</button>
+        <motion.button whileTap={{scale:.9}} className="btn-icon" onClick={()=>setShowDb(true)} style={{color:C.blue,background:C.blueL}}>
+          <Settings size={16} strokeWidth={2}/>
+        </motion.button>
+        <motion.button whileTap={{scale:.9}} onClick={handleLogout} style={{height:32,padding:"0 10px",background:C.roseL,color:C.rose,border:"none",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+          <LogOut size={13}/> Keluar
+        </motion.button>
       </div>
-    :<button onClick={()=>setShowLogin(true)} style={{height:32,padding:"0 12px",background:C.blueL,color:C.blue,border:"1px solid "+C.line2,borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer"}}>
-        🔐 Admin
-      </button>;
+    :<motion.button whileTap={{scale:.95}} onClick={()=>setShowLogin(true)} style={{height:32,padding:"0 12px",background:C.blueL,color:C.blue,border:"1px solid "+C.line2,borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+        <Lock size={13}/> Admin
+      </motion.button>;
 
   return(
     <>
       <GS/>
-      <div className="app-wrap fade-in">
+      <div className="app-wrap">
         <div style={{height:"env(safe-area-inset-top,0px)",background:C.bg}}/>
         <div className="topbar">
           <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:C.blue,letterSpacing:".02em"}}>{titles[tab]}</span>
           {rightBtn}
         </div>
         <div className="content">
-          {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
-          {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
-          {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
-          {tab==="hukum"&&<HukumTab/>}
-          {tab==="tentang"&&<AboutTab/>}
+          <AnimatePresence mode="wait">
+            <motion.div key={tab}
+              initial={{opacity:0,y:12}}
+              animate={{opacity:1,y:0}}
+              exit={{opacity:0,y:-8}}
+              transition={{duration:.25,ease:[.16,1,.3,1]}}
+              style={{height:"100%"}}>
+              {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
+              {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
+              {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
+              {tab==="hukum"&&<HukumTab/>}
+              {tab==="tentang"&&<AboutTab/>}
+            </motion.div>
+          </AnimatePresence>
         </div>
-        <div className="nav-bar">
-          {NAV5.map(n=>{const on=tab===n.id;return(
-            <div key={n.id} className={"nav-item"+(on?" on":"")} onClick={()=>{setTab(n.id);setStatusKat(null);}}>
-              <div className="nav-icon" style={{color:on?C.blue:C.muted,fontFamily:"monospace",fontWeight:700,fontSize:18}}>{n.icon}</div>
-              <span className="nav-label" style={{color:on?C.blue:C.muted}}>{n.label}</span>
-            </div>
-          );})}
-        </div>
+        <NavBar active={tab} onTab={t=>{setTab(t);setStatusKat(null);}}/>
       </div>
       {showLogin&&<LoginSheet onLogin={u=>setUser(u)} onClose={()=>setShowLogin(false)}/>}
     </>
