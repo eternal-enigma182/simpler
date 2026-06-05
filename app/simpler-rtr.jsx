@@ -1226,7 +1226,7 @@ function EditHukumSheet({item, onSave, onClose}){
   );
 }
 
-function HukumTab(){
+function HukumTab({isAdmin}){
   const [q,setQ]=useState("");
   const [hukum,setHukum]=useState([]);
   const [loading,setLoading]=useState(true);
@@ -1252,20 +1252,24 @@ function HukumTab(){
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:14}}>
-      {/* Search + tombol tambah */}
+      {/* Search + tombol tambah (admin only) */}
       <div style={{display:"flex",gap:8}}>
         <div style={{position:"relative",flex:1}}>
           <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
           <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari peraturan..." style={{paddingLeft:36}}/>
         </div>
-        <button onClick={()=>setAdding(true)}
-          style={{height:46,padding:"0 16px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0}}>+</button>
+        {isAdmin&&(
+          <motion.button whileTap={{scale:.9}} onClick={()=>setAdding(true)}
+            style={{height:46,padding:"0 16px",background:C.blue,color:"#FFFDF5",border:"none",borderRadius:10,fontSize:18,fontWeight:800,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center"}}>
+            <Plus size={20}/>
+          </motion.button>
+        )}
       </div>
 
       <div className="label">{hukum.length} peraturan</div>
 
       <div className="card">
-        {loading?<Spinner/>:fl.length===0?<Empty icon="⚖️" text="Tidak ditemukan"/>:
+        {loading?<Spinner/>:fl.length===0?<Empty text="Tidak ditemukan"/>:
           fl.map((d,i)=>(
             <motion.div key={d.id} className="t-row" whileTap={{scale:.99}} whileHover={{background:C.bg2}}
               onClick={()=>d.link?window.open(d.link,"_blank"):null}
@@ -1277,22 +1281,24 @@ function HukumTab(){
               </div>
               <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                 {d.link&&<div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}><ExternalLink size={12} color={C.blue} strokeWidth={2}/><span style={{fontSize:10,color:C.blue,fontWeight:700}}>Buka</span></div>}
-                <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();setEditing(d);}} style={{background:C.blueL,border:"none",borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Pencil size={10} strokeWidth={2}/> Edit</motion.button>
-                <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();handleDelete(d.id);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.muted,padding:"4px",display:"flex"}}><Trash2 size={14} strokeWidth={1.8}/></motion.button>
+                {!d.link&&!isAdmin&&<ChevronRight size={16} color={C.muted} strokeWidth={1.8}/>}
+                {isAdmin&&<>
+                  <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();setEditing(d);}} style={{background:C.blueL,border:"none",borderRadius:7,padding:"4px 8px",fontSize:10,cursor:"pointer",color:C.blue,fontWeight:700,display:"flex",alignItems:"center",gap:3}}><Pencil size={10} strokeWidth={2}/> Edit</motion.button>
+                  <motion.button whileTap={{scale:.85}} onClick={e=>{e.stopPropagation();handleDelete(d.id);}} style={{background:"transparent",border:"none",cursor:"pointer",color:C.muted,padding:"4px",display:"flex"}}><Trash2 size={14} strokeWidth={1.8}/></motion.button>
+                </>}
               </div>
             </motion.div>
           ))
         }
       </div>
 
-      {/* Add Sheet */}
-      {adding&&(
+      {isAdmin&&adding&&(
         <AddHukumSheet
           onAdd={item=>{setHukum(p=>[...p,item]);setAdding(false);}}
           onClose={()=>setAdding(false)}
         />
       )}
-      {editing&&<EditHukumSheet item={editing} onSave={u=>setHukum(p=>p.map(h=>h.id===u.id?u:h))} onClose={()=>setEditing(null)}/>}
+      {isAdmin&&editing&&<EditHukumSheet item={editing} onSave={u=>setHukum(p=>p.map(h=>h.id===u.id?u:h))} onClose={()=>setEditing(null)}/>}
     </div>
   );
 }
@@ -1555,7 +1561,7 @@ export default function App(){
               {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null}/>}
               {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
               {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
-              {tab==="hukum"&&<HukumTab/>}
+              {tab==="hukum"&&<HukumTab isAdmin={isAdmin}/>}
               {tab==="tentang"&&<AboutTab/>}
             </motion.div>
           </AnimatePresence>
