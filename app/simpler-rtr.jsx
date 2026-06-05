@@ -157,7 +157,7 @@ const GS = () => (
 
     .content{flex:1;overflow-y:auto;padding-bottom:80px;}
     .content.no-nav{padding-bottom:0;}
-    .inner{max-width:960px;margin:0 auto;padding:16px;}
+    .inner{max-width:960px;margin:0 auto;padding:16px;padding-bottom:24px;}
     @media(min-width:640px){.inner{padding:24px;}}
     @media(min-width:960px){.inner{padding:32px;}}
 
@@ -1000,13 +1000,13 @@ function StatusTab({data, loading, initKat}){
           <Search size={14} color={C.muted} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
           <input value={search} onChange={e=>setSearch(e.target.value)} className="field" placeholder="Cari..." style={{paddingLeft:34,height:40,fontSize:13}}/>
         </div>
-        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:"auto",height:40,fontSize:12,paddingLeft:10,paddingRight:10}}>
+        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:90,height:40,fontSize:11,paddingLeft:8,paddingRight:4}}>
           <option value="nama-asc">A–Z</option>
           <option value="nama-desc">Z–A</option>
           <option value="progress-desc">Progress ↓</option>
           <option value="progress-asc">Progress ↑</option>
         </select>
-        <select value={filterSt} onChange={e=>setFilterSt(e.target.value)} className="field" style={{width:"auto",height:40,fontSize:12,paddingLeft:10,paddingRight:10}}>
+        <select value={filterSt} onChange={e=>setFilterSt(e.target.value)} className="field" style={{width:100,height:40,fontSize:11,paddingLeft:8,paddingRight:4}}>
           <option value="Semua">Semua</option>
           <option value="Selesai">✓ Selesai</option>
           <option value="Proses">◑ Proses</option>
@@ -1072,7 +1072,7 @@ function ProdukTab({data, loading}){
           <Search size={15} color={C.muted} style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
           <input value={q} onChange={e=>setQ(e.target.value)} className="field" placeholder="Cari produk hukum..." style={{paddingLeft:36}}/>
         </div>
-        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:"auto",fontSize:12,paddingLeft:10,paddingRight:10}}>
+        <select value={sort} onChange={e=>setSort(e.target.value)} className="field" style={{width:90,fontSize:11,paddingLeft:8,paddingRight:4}}>
           <option value="nama-asc">A–Z</option>
           <option value="nama-desc">Z–A</option>
           <option value="kat">Kategori</option>
@@ -1516,7 +1516,7 @@ export default function App(){
               <Search size={14} color={C.muted} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
               <input value={dbSearch} onChange={e=>setDbSearch(e.target.value)} className="field" placeholder="Cari kawasan..." style={{paddingLeft:32,height:38,fontSize:13}}/>
             </div>
-            <select value={dbSort} onChange={e=>setDbSort(e.target.value)} className="field" style={{width:"auto",height:38,fontSize:12,paddingLeft:10,paddingRight:10,flexShrink:0}}>
+            <select value={dbSort} onChange={e=>setDbSort(e.target.value)} className="field" style={{width:90,height:38,fontSize:11,paddingLeft:8,paddingRight:4,flexShrink:0}}>
               <option value="nama-asc">A–Z</option>
               <option value="nama-desc">Z–A</option>
               <option value="progress-desc">Progress ↓</option>
