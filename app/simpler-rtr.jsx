@@ -1362,7 +1362,7 @@ function LoginSheet({onLogin, onClose}){
           <div className="label" style={{marginBottom:6}}>Password</div>
           <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} className="field" placeholder="••••••••" type="password"/>
         </div>
-        {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8}} style={{display:"flex",alignItems:"center",gap:6}}><TriangleAlert size={14}/>{err}</div>}
+        {err&&<div style={{fontSize:13,color:C.rose,fontWeight:600,padding:"8px 12px",background:C.roseL,borderRadius:8,display:"flex",alignItems:"center",gap:6}}><TriangleAlert size={14}/>{err}</div>}
       </div>
       <div style={{padding:"0 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Batal</motion.button>
