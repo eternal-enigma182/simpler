@@ -144,7 +144,7 @@ const GS = () => (
       backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
       border-top:1px solid ${C.line};
       display:flex;align-items:center;justify-content:space-around;
-      padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+      padding:6px 0 calc(4px + min(env(safe-area-inset-bottom), 16px));
       z-index:50;
     }
     .nav-item{
@@ -155,7 +155,7 @@ const GS = () => (
     }
     .nav-label{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
 
-    .content{flex:1;overflow-y:auto;padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+    .content{flex:1;overflow-y:auto;padding-bottom:calc(68px + min(env(safe-area-inset-bottom), 16px));}
     .content.no-nav{padding-bottom:0;}
     .inner{max-width:960px;margin:0 auto;padding:16px;}
     @media(min-width:640px){.inner{padding:24px;}}
