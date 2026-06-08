@@ -64,9 +64,9 @@ const ST = {
 const KATEGORI = ["RZ KAW","RTR KSN","RTRWP","RTRWN"];
 const TAHAPAN = {
   "RZ KAW":  ["Pembentukan PAK","Dokumen Awal","Dokumen Antara","Dokumen Final","Legal Drafting","Pembahasan PAK","Harmonisasi","Penetapan Perpres"],
-  "RTR KSN": ["Materi Teknis Ruang Darat & Perairan","Integrasi Muatan Materi Teknis","Persetujuan Substansi","Rapat PAK","Harmonisasi","Permohonan Paraf K/L","Penetapan Perpres"],
-  "RTRWP":   ["Materi Teknis Ruang Darat & Laut","Proses Integrasi","Validasi KLHS","Pembahasan Ranperda di DPRD","Lintas Sektor","Persetujuan Substansi","Persetujuan DPRD","Evaluasi Dagri","Penetapan Perda"],
-  "RTRWN":   ["Penyusunan Materi Teknis RTRL & RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
+  "RTR KSN": ["Dokumen Awal","Dokumen Antara","Dokumen Final","Konsepsi Matek Ruang Perairan","Persiapan Penyusunan","Pengumpulan Data & Informasi","Pengolahan Data dan Analisis","Konsepsi Matek Ruang Darat","Integrasi Muatan Materi Teknis","Persub","PAK","Harmonisasi","Peromohonan Paraf K/L","Penetapan Perpres"],
+  "RTRWP":   ["Matek Ruang Darat","Pertek MKP","Proses Integrasi","Validasi KLHS","Pembahasan Ranperda di DPRD","Lintas Sektor","Persub","Persetujuan DPRD","Evaluasi Dagri","Pentapan Perda"],
+  "RTRWN":   ["Persiapan Penyusunan Matek RTRL","Pengumpulan Data & Informasi Matek RTRL","Pengolahan Data dan Analisis Matek RTRL","Konsepsi Matek Ruang Darat Matek RTRL","Persiapan Penyusunan Matek RTRWN","Pengumpulan Data & Informasi Matek RTRWN","Pengolahan Data dan Analisis Matek RTRWN","Konsepsi Matek Ruang Darat Matek RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
 };
 
 function getStepState(status) {
@@ -1326,6 +1326,7 @@ function AboutTab(){
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
           <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
+            <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
@@ -1333,6 +1334,7 @@ function AboutTab(){
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
           <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
+            <SimplerLogo size={14}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
