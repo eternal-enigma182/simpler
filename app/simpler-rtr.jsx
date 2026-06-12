@@ -523,7 +523,7 @@ function AppShell({title, children, rightBtn, onBack, tab, onTab, hideNav}){
 /* ══════════════════════════════════════════════════
    DETAIL SHEET
 ══════════════════════════════════════════════════ */
-function DetailSheet({entry, onEdit, onClose}){
+function DetailSheet({entry, onEdit, onClose, isAdmin}){
   const p=calcP(entry);
   const ks=KS[entry.kategori];
   const done=entry.steps.filter(s=>getStepState(s.status)==="Selesai").length;
@@ -613,7 +613,7 @@ function DetailSheet({entry, onEdit, onClose}){
       </div>
       <div style={{padding:"16px 16px calc(16px + env(safe-area-inset-bottom))",display:"flex",gap:10}}>
         <motion.button whileTap={{scale:.97}} className="btn-ghost" onClick={onClose} style={{flex:1}}>Tutup</motion.button>
-        <motion.button whileTap={{scale:.97}} className="btn-primary" onClick={onEdit} style={{flex:2,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Pencil size={14}/> Edit Data</motion.button>
+        {isAdmin&&<motion.button whileTap={{scale:.97}} className="btn-primary" onClick={onEdit} style={{flex:2,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><Pencil size={14}/> Edit Data</motion.button>}
       </div>
     </Sheet>
   );
@@ -1013,7 +1013,7 @@ function HomeTab({data, loading, onGoStatus, onGoDb, onGoHukum}){
 /* ══════════════════════════════════════════════════
    STATUS TAB — dengan search + sort + filter
 ══════════════════════════════════════════════════ */
-function StatusTab({data, loading, initKat}){
+function StatusTab({data, loading, initKat, isAdmin}){
   const [kat,setKat]=useState(initKat||null);
   const [detail,setDetail]=useState(null);
   const [editing,setEditing]=useState(null);
@@ -1148,8 +1148,8 @@ function StatusTab({data, loading, initKat}){
           </motion.div>
         );
       })}
-      {detail&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)}/>}
-      {editing&&<EditSheet entry={editing} onSave={u=>{setLocalData(p=>(p||displayData).map(e=>e.id===u.id?u:e));}} onClose={()=>setEditing(null)}/>}
+      {detail&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)} isAdmin={isAdmin}/>}
+      {isAdmin&&editing&&<EditSheet entry={editing} onSave={u=>{setLocalData(p=>(p||displayData).map(e=>e.id===u.id?u:e));}} onClose={()=>setEditing(null)}/>}
     </div>
   );
 }
@@ -1673,7 +1673,7 @@ export default function App(){
           </div>
         </div>
 
-        {detail&&!editing&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)}/>}
+        {detail&&!editing&&<DetailSheet entry={detail} onEdit={()=>{setEditing(detail);setDetail(null);}} onClose={()=>setDetail(null)} isAdmin={isAdmin}/>}
         {editing&&<EditSheet entry={editing} onSave={updateEntry} onClose={()=>setEditing(null)}/>}
         {adding&&<AddSheet onAdd={addEntry} onClose={()=>setAdding(false)}/>}
       </div>
@@ -1704,7 +1704,7 @@ export default function App(){
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} transition={{duration:.25,ease:[.16,1,.3,1]}} style={{height:"100%"}}>
               {tab==="home"&&<HomeTab data={data} loading={loading} onGoStatus={k=>{setStatusKat(k);setTab("status");}} onGoDb={isAdmin?()=>setShowDb(true):null} onGoHukum={()=>setTab("hukum")}/>}
-              {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat}/>}
+              {tab==="status"&&<StatusTab data={data} loading={loading} initKat={statusKat} isAdmin={isAdmin}/>}
               {tab==="produk"&&<ProdukTab data={data} loading={loading}/>}
               {tab==="hukum"&&<HukumTab isAdmin={isAdmin}/>}
               {tab==="tentang"&&<AboutTab/>}
