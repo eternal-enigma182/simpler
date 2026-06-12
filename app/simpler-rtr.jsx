@@ -75,6 +75,31 @@ function getStepState(status) {
   return "Selesai";
 }
 
+// Group steps: gabungkan "Matek Ruang Darat" + "Pertek MKP" jadi 1 grup visual
+// "Materi Teknis Ruang Darat dan Laut" dengan sub-status Darat & Laut
+function groupSteps(steps){
+  const groups = [];
+  let skipNext = false;
+  for(let i=0;i<steps.length;i++){
+    if(skipNext){ skipNext=false; continue; }
+    const s = steps[i];
+    if(s.nama === "Matek Ruang Darat" && steps[i+1]?.nama === "Pertek MKP"){
+      groups.push({
+        combined: true,
+        title: "Materi Teknis Ruang Darat dan Laut",
+        darat: s,
+        laut: steps[i+1],
+        idxDarat: i,
+        idxLaut: i+1,
+      });
+      skipNext = true;
+    } else {
+      groups.push({ combined:false, step:s, idx:i });
+    }
+  }
+  return groups;
+}
+
 const calcP = e => {
   if (!e.steps || e.steps.length === 0) return 0;
   const done = e.steps.filter(s => getStepState(s.status) === "Selesai").length;
@@ -533,10 +558,43 @@ function DetailSheet({entry, onEdit, onClose}){
         <div className="label" style={{marginBottom:12}}>Tahapan Penetapan</div>
       </div>
       <div className="card" style={{margin:"0 16px",borderRadius:12}}>
-        {entry.steps.map((s,i)=>{
+        {groupSteps(entry.steps).map((g,i)=>{
+          const isLast=i===groupSteps(entry.steps).length-1;
+          if(g.combined){
+            const stD=ST[getStepState(g.darat.status)]||ST.Belum;
+            const stL=ST[getStepState(g.laut.status)]||ST.Belum;
+            const bothDone = getStepState(g.darat.status)==="Selesai" && getStepState(g.laut.status)==="Selesai";
+            const dotState = bothDone ? "Selesai" : "Proses";
+            const dotSt = ST[dotState]||ST.Belum;
+            return(
+              <div key={i} style={{display:"flex",gap:14,padding:"12px 16px",borderBottom:isLast?"none":"1px solid "+C.line}}>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:dotSt.l,border:"1.5px solid "+dotSt.dot,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:dotSt.dot,fontWeight:800}}>{i+1}</div>
+                  {!isLast&&<div style={{width:1,flex:1,background:C.line,margin:"3px 0"}}/>}
+                </div>
+                <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:bothDone?C.light:C.soft,lineHeight:1.4,marginBottom:8}}>{g.title}</div>
+                  {/* Sub: Darat */}
+                  <div style={{marginBottom:6}}>
+                    <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:3}}>Ruang Darat</div>
+                    <StatusChip st={g.darat.status}/>
+                    {g.darat.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:4}}>📅 {g.darat.tanggal}</div>}
+                    {g.darat.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{g.darat.keterangan}</div>}
+                  </div>
+                  {/* Sub: Laut */}
+                  <div>
+                    <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:3}}>Ruang Laut</div>
+                    <StatusChip st={g.laut.status}/>
+                    {g.laut.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:4}}>📅 {g.laut.tanggal}</div>}
+                    {g.laut.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{g.laut.keterangan}</div>}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          const s=g.step;
           const state=getStepState(s.status);
           const st=ST[state]||ST.Belum;
-          const isLast=i===entry.steps.length-1;
           return(
             <div key={i} style={{display:"flex",gap:14,padding:"12px 16px",borderBottom:isLast?"none":"1px solid "+C.line}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0}}>
@@ -545,7 +603,6 @@ function DetailSheet({entry, onEdit, onClose}){
               </div>
               <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
                 <div style={{fontSize:12,fontWeight:600,color:state==="Selesai"?C.light:C.soft,lineHeight:1.4,marginBottom:6}}>{s.nama}</div>
-                {/* Status full text — tidak dipotong */}
                 <StatusChip st={s.status}/>
                 {s.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:6}}>📅 {s.tanggal}</div>}
                 {s.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{s.keterangan}</div>}
@@ -595,12 +652,63 @@ function EditSheet({entry, onSave, onClose}){
           <input value={f.link_produk} onChange={e=>setF(p=>({...p,link_produk:e.target.value}))} className="field" placeholder="https://drive.google.com/file/d/..."/>
         </div>
         <div className="label" style={{marginTop:4}}>Tahapan</div>
-        {f.steps.map((step,i)=>{
+        {groupSteps(f.steps).map((g,gi)=>{
+          if(g.combined){
+            const pilihanDarat=getPilihan(f.kategori, g.darat.nama);
+            const pilihanLaut=getPilihan(f.kategori, g.laut.nama);
+            return(
+              <div key={gi} className="card" style={{padding:"14px 16px",borderRadius:12}}>
+                <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c,flexShrink:0}}>{gi+1}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:C.light,lineHeight:1.3}}>{g.title}</div>
+                </div>
+
+                {/* Sub: Ruang Darat */}
+                <div style={{padding:"10px",background:C.surface2,borderRadius:8,marginBottom:8}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.soft,marginBottom:6}}>Ruang Darat</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:6}}>
+                    <div>
+                      <div className="label" style={{marginBottom:5}}>Status</div>
+                      <select value={g.darat.status} onChange={e=>ss(g.idxDarat,"status",e.target.value)} className="field" style={{fontSize:12}}>
+                        {pilihanDarat.map(s=><option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <div className="label" style={{marginBottom:5}}>Tanggal</div>
+                      <input value={g.darat.tanggal} onChange={e=>ss(g.idxDarat,"tanggal",e.target.value)} className="field" placeholder="15 Mei 2023" style={{fontSize:13}}/>
+                    </div>
+                  </div>
+                  <div className="label" style={{marginBottom:5}}>Keterangan</div>
+                  <input value={g.darat.keterangan} onChange={e=>ss(g.idxDarat,"keterangan",e.target.value)} className="field" placeholder="Keterangan..." style={{fontSize:13}}/>
+                </div>
+
+                {/* Sub: Ruang Laut */}
+                <div style={{padding:"10px",background:C.surface2,borderRadius:8}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.soft,marginBottom:6}}>Ruang Laut</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:6}}>
+                    <div>
+                      <div className="label" style={{marginBottom:5}}>Status</div>
+                      <select value={g.laut.status} onChange={e=>ss(g.idxLaut,"status",e.target.value)} className="field" style={{fontSize:12}}>
+                        {pilihanLaut.map(s=><option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <div className="label" style={{marginBottom:5}}>Tanggal</div>
+                      <input value={g.laut.tanggal} onChange={e=>ss(g.idxLaut,"tanggal",e.target.value)} className="field" placeholder="15 Mei 2023" style={{fontSize:13}}/>
+                    </div>
+                  </div>
+                  <div className="label" style={{marginBottom:5}}>Keterangan</div>
+                  <input value={g.laut.keterangan} onChange={e=>ss(g.idxLaut,"keterangan",e.target.value)} className="field" placeholder="Keterangan..." style={{fontSize:13}}/>
+                </div>
+              </div>
+            );
+          }
+          const step=g.step, i=g.idx;
           const pilihan=getPilihan(f.kategori, step.nama);
           return(
-            <div key={i} className="card" style={{padding:"14px 16px",borderRadius:12}}>
+            <div key={gi} className="card" style={{padding:"14px 16px",borderRadius:12}}>
               <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
-                <div style={{width:22,height:22,borderRadius:"50%",background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c,flexShrink:0}}>{i+1}</div>
+                <div style={{width:22,height:22,borderRadius:"50%",background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c,flexShrink:0}}>{gi+1}</div>
                 <div style={{fontSize:12,fontWeight:600,color:C.light,lineHeight:1.3}}>{step.nama}</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
@@ -1326,6 +1434,7 @@ function AboutTab(){
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
           <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
+            <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
@@ -1333,6 +1442,7 @@ function AboutTab(){
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
           <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
+            <SimplerLogo size={14}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
