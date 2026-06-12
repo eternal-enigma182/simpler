@@ -1485,7 +1485,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2025 Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2026 Asdep PKRL Deputi Sumber Daya Maritim
       </div>
     </div>
   );
