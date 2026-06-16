@@ -693,12 +693,16 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                   {[g.groupA, g.groupB].map((grp,gi2)=>(
                     <div key={gi2} style={{marginBottom:gi2===0?14:0}}>
                       <div style={{fontSize:12,fontWeight:700,color:C.light,marginBottom:8}}>{grp.label}</div>
-                      {grp.subSteps.map((sub,si)=>(
-                        <div key={si} style={{display:"flex",justifyContent:"space-between",gap:10,padding:"8px 0",borderTop:si>0?"1px solid "+C.line:"none"}}>
-                          <span style={{fontSize:11,color:C.soft,flex:1,lineHeight:1.4}}>{sub.nama}</span>
-                          <span style={{fontSize:12,fontWeight:700,color:getStepState(sub.status)==="Selesai"?C.light:C.muted,textAlign:"right",flex:1,lineHeight:1.4}}>{sub.status}</span>
-                        </div>
-                      ))}
+                      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                        {grp.subSteps.map((sub,si)=>(
+                          <div key={si} style={{paddingTop:si>0?10:0,borderTop:si>0?"1px solid "+C.line:"none"}}>
+                            <div style={{fontSize:11,fontWeight:600,color:C.light,lineHeight:1.4,marginBottom:6}}>{sub.nama}</div>
+                            <StatusChip st={sub.status}/>
+                            {sub.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:4}}>📅 {sub.tanggal}</div>}
+                            {sub.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{sub.keterangan}</div>}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
