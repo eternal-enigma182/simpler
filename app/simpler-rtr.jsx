@@ -66,7 +66,7 @@ const TAHAPAN = {
   "RZ KAW":  ["Pembentukan PAK","Dokumen Awal","Dokumen Antara","Dokumen Final","Legal Drafting","Pembahasan PAK","Harmonisasi","Penetapan Perpres"],
   "RTR KSN": ["Dokumen Awal","Dokumen Antara","Dokumen Final","Konsepsi Matek Ruang Perairan","Persiapan Penyusunan","Pengumpulan Data & Informasi","Pengolahan Data dan Analisis","Konsepsi Matek Ruang Darat","Integrasi Muatan Materi Teknis","Persub","PAK","Harmonisasi","Peromohonan Paraf K/L","Penetapan Perpres"],
   "RTRWP":   ["Matek Ruang Darat","Pertek MKP","Proses Integrasi","Validasi KLHS","Pembahasan Ranperda di DPRD","Lintas Sektor","Persub","Persetujuan DPRD","Evaluasi Dagri","Pentapan Perda"],
-  "RTRWN":   ["Persiapan Penyusunan Matek RTRL","Pengumpulan Data & Informasi Matek RTRL","Pengolahan Data dan Analisis Matek RTRL","Konsepsi Matek Ruang Darat Matek RTRL","Persiapan Penyusunan Matek RTRWN","Pengumpulan Data & Informasi Matek RTRWN","Pengolahan Data dan Analisis Matek RTRWN","Konsepsi Matek Ruang Darat Matek RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
+  "RTRWN":   ["Persiapan Penyusunan Matek RTRL","Pengumpulan Data & Informasi Matek RTRL","Pengolahan Data dan Analisis Matek RTRL","Konsepsi Matek Ruang Laut Matek RTRL","Persiapan Penyusunan Matek RTRWN","Pengumpulan Data & Informasi Matek RTRWN","Pengolahan Data dan Analisis Matek RTRWN","Konsepsi Matek Ruang Darat Matek RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
 };
 
 function getStepState(status) {
@@ -75,14 +75,17 @@ function getStepState(status) {
   return "Selesai";
 }
 
-// Group steps: gabungkan "Matek Ruang Darat" + "Pertek MKP" jadi 1 grup visual
-// "Materi Teknis Ruang Darat dan Laut" dengan sub-status Darat & Laut
+// Group steps: gabungkan beberapa step jadi 1 grup visual
+// RTRWP: "Matek Ruang Darat" + "Pertek MKP" -> "Materi Teknis Ruang Darat dan Laut" (2 sub)
+// RTRWN: 4 step RTRL + 4 step RTRWN -> "Penyusunan Materi Teknis RTRL dan RTRWN" (2 kelompok x 4 sub)
 function groupSteps(steps){
   const groups = [];
-  let skipNext = false;
+  let skip = 0;
   for(let i=0;i<steps.length;i++){
-    if(skipNext){ skipNext=false; continue; }
+    if(skip>0){ skip--; continue; }
     const s = steps[i];
+
+    // RTRWP: Matek Ruang Darat + Pertek MKP
     if(s.nama === "Matek Ruang Darat" && steps[i+1]?.nama === "Pertek MKP"){
       groups.push({
         combined: true,
@@ -92,10 +95,31 @@ function groupSteps(steps){
         idxDarat: i,
         idxLaut: i+1,
       });
-      skipNext = true;
-    } else {
-      groups.push({ combined:false, step:s, idx:i });
+      skip = 1;
+      continue;
     }
+
+    // RTRWN: 4 step RTRL + 4 step RTRWN
+    if(s.nama === "Persiapan Penyusunan Matek RTRL"
+      && steps[i+1]?.nama === "Pengumpulan Data & Informasi Matek RTRL"
+      && steps[i+2]?.nama === "Pengolahan Data dan Analisis Matek RTRL"
+      && steps[i+3]?.nama === "Konsepsi Matek Ruang Laut Matek RTRL"
+      && steps[i+4]?.nama === "Persiapan Penyusunan Matek RTRWN"
+      && steps[i+5]?.nama === "Pengumpulan Data & Informasi Matek RTRWN"
+      && steps[i+6]?.nama === "Pengolahan Data dan Analisis Matek RTRWN"
+      && steps[i+7]?.nama === "Konsepsi Matek Ruang Darat Matek RTRWN"
+    ){
+      groups.push({
+        combinedMulti: true,
+        title: "Penyusunan Materi Teknis RTRL dan RTRWN",
+        groupA: { label:"Materi Teknis RTRL", subSteps:[steps[i],steps[i+1],steps[i+2],steps[i+3]], idxOffset:i },
+        groupB: { label:"Materi Teknis RTRWN", subSteps:[steps[i+4],steps[i+5],steps[i+6],steps[i+7]], idxOffset:i+4 },
+      });
+      skip = 7;
+      continue;
+    }
+
+    groups.push({ combined:false, step:s, idx:i });
   }
   return groups;
 }
@@ -105,6 +129,67 @@ const calcP = e => {
   const done = e.steps.filter(s => getStepState(s.status) === "Selesai").length;
   return Math.round(done / e.steps.length * 100);
 };
+
+// Nama tahapan "akhir" yang dianggap penetapan final per kategori
+const FINAL_STEP = {
+  "RZ KAW": "Penetapan Perpres",
+  "RTR KSN": "Penetapan Perpres",
+  "RTRWP": "Penetapan Perda",
+  "RTRWN": "Penetapan Peraturan Pemerintah",
+};
+
+const FINAL_LABEL = {
+  "RZ KAW": "menetapkan Perpres",
+  "RTR KSN": "menetapkan Perpres",
+  "RTRWP": "menetapkan Perda",
+  "RTRWN": "menetapkan PP",
+};
+
+// Cari step pertama yang belum selesai (state Belum/Proses) untuk sebuah entry
+function firstUnfinishedStep(entry){
+  return entry.steps.find(s => getStepState(s.status) !== "Selesai") || null;
+}
+
+// Generate narasi ringkasan dinamis untuk satu kategori
+function generateSummary(entries, kategori){
+  if(!entries || entries.length===0) return null;
+
+  const total = entries.length;
+  const done = entries.filter(e=>calcP(e)===100);
+  const finalLabel = FINAL_LABEL[kategori] || "menetapkan produk hukum";
+
+  // Kelompokkan entry yang BELUM selesai berdasarkan nama tahapan tertunda
+  const pending = entries.filter(e=>calcP(e)<100);
+  const groups = {};
+  pending.forEach(e=>{
+    const step = firstUnfinishedStep(e);
+    const label = step ? step.nama : "Belum dimulai";
+    if(!groups[label]) groups[label]=[];
+    groups[label].push(e.nama);
+  });
+
+  // Urutkan grup berdasarkan jumlah anggota terbanyak dulu
+  const sortedGroups = Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+
+  const parts = [];
+
+  // Kalimat 1: yang sudah selesai
+  if(done.length>0){
+    parts.push(`Sudah ada ${done.length} dari ${total} ${kategori==="RTRWP"?"provinsi":"kawasan"} yang telah ${finalLabel}`);
+  } else {
+    parts.push(`Belum ada ${kategori==="RTRWP"?"provinsi":"kawasan"} yang ${finalLabel} dari total ${total}`);
+  }
+
+  // Kalimat lanjutan: per grup tahapan tertunda (maks 3 grup ditampilkan)
+  sortedGroups.slice(0,3).forEach(([label, names])=>{
+    const namesText = names.length<=3
+      ? names.join(", ")
+      : names.slice(0,3).join(", ") + `, dan ${names.length-3} lainnya`;
+    parts.push(`${names.length} ${kategori==="RTRWP"?"provinsi":"kawasan"} masih dalam tahap "${label}" yaitu ${namesText}`);
+  });
+
+  return parts.join(". ") + ".";
+}
 
 function formatEntry(entry, allSteps) {
   const steps = (allSteps || [])
@@ -592,6 +677,36 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
               </div>
             );
           }
+          if(g.combinedMulti){
+            const allSub = [...g.groupA.subSteps, ...g.groupB.subSteps];
+            const allDone = allSub.every(s=>getStepState(s.status)==="Selesai");
+            const dotState = allDone ? "Selesai" : "Proses";
+            const dotSt = ST[dotState]||ST.Belum;
+            return(
+              <div key={i} style={{display:"flex",gap:14,padding:"12px 16px",borderBottom:isLast?"none":"1px solid "+C.line}}>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:dotSt.l,border:"1.5px solid "+dotSt.dot,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:dotSt.dot,fontWeight:800}}>{i+1}</div>
+                  {!isLast&&<div style={{width:1,flex:1,background:C.line,margin:"3px 0"}}/>}
+                </div>
+                <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:allDone?C.light:C.soft,lineHeight:1.4,marginBottom:8}}>{g.title}</div>
+                  {[g.groupA, g.groupB].map((grp,gi2)=>(
+                    <div key={gi2} style={{marginBottom:gi2===0?10:0}}>
+                      <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:4}}>{grp.label}</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                        {grp.subSteps.map((sub,si)=>(
+                          <div key={si} style={{display:"flex",alignItems:"flex-start",gap:6}}>
+                            <span style={{fontSize:10,color:C.soft,minWidth:0,flex:"0 0 auto",maxWidth:"45%",lineHeight:1.4}}>{sub.nama}:</span>
+                            <StatusChip st={sub.status}/>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
           const s=g.step;
           const state=getStepState(s.status);
           const st=ST[state]||ST.Belum;
@@ -700,6 +815,43 @@ function EditSheet({entry, onSave, onClose}){
                   <div className="label" style={{marginBottom:5}}>Keterangan</div>
                   <input value={g.laut.keterangan} onChange={e=>ss(g.idxLaut,"keterangan",e.target.value)} className="field" placeholder="Keterangan..." style={{fontSize:13}}/>
                 </div>
+              </div>
+            );
+          }
+          if(g.combinedMulti){
+            return(
+              <div key={gi} className="card" style={{padding:"14px 16px",borderRadius:12}}>
+                <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:ks.l,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:ks.c,flexShrink:0}}>{gi+1}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:C.light,lineHeight:1.3}}>{g.title}</div>
+                </div>
+                {[g.groupA, g.groupB].map((grp,gi2)=>(
+                  <div key={gi2} style={{padding:"10px",background:C.surface2,borderRadius:8,marginBottom:gi2===0?8:0}}>
+                    <div style={{fontSize:11,fontWeight:700,color:C.soft,marginBottom:8}}>{grp.label}</div>
+                    {grp.subSteps.map((sub,si)=>{
+                      const idx = grp.idxOffset + si;
+                      const pilihanSub = getPilihan(f.kategori, sub.nama);
+                      return(
+                        <div key={si} style={{marginBottom:si<grp.subSteps.length-1?10:0,paddingBottom:si<grp.subSteps.length-1?10:0,borderBottom:si<grp.subSteps.length-1?"1px solid "+C.line:"none"}}>
+                          <div style={{fontSize:10,fontWeight:600,color:C.light,marginBottom:6}}>{sub.nama}</div>
+                          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:6}}>
+                            <div>
+                              <div className="label" style={{marginBottom:4}}>Status</div>
+                              <select value={sub.status} onChange={e=>ss(idx,"status",e.target.value)} className="field" style={{fontSize:11}}>
+                                {pilihanSub.map(s=><option key={s} value={s}>{s}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <div className="label" style={{marginBottom:4}}>Tanggal</div>
+                              <input value={sub.tanggal} onChange={e=>ss(idx,"tanggal",e.target.value)} className="field" placeholder="15 Mei 2023" style={{fontSize:12}}/>
+                            </div>
+                          </div>
+                          <input value={sub.keterangan} onChange={e=>ss(idx,"keterangan",e.target.value)} className="field" placeholder="Keterangan..." style={{fontSize:12}}/>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             );
           }
@@ -1091,6 +1243,7 @@ function StatusTab({data, loading, initKat, isAdmin}){
   const ks=KS[kat];
   const allEntries=displayData.filter(d=>d.kategori===kat);
   const done=allEntries.filter(e=>calcP(e)===100).length;
+  const summary=generateSummary(allEntries, kat);
 
   return(
     <div className="inner" style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -1101,6 +1254,15 @@ function StatusTab({data, loading, initKat, isAdmin}){
           <div style={{fontSize:11,color:C.muted,marginTop:3}}>{done}/{allEntries.length} ditetapkan</div>
         </div>
       </div>
+
+      {/* Summary naratif dinamis */}
+      {summary&&(
+        <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}}
+          style={{background:ks.l,border:"1px solid "+ks.c+"30",borderRadius:12,padding:"12px 14px"}}>
+          <div style={{fontSize:12,color:C.light,lineHeight:1.7}}>{summary}</div>
+        </motion.div>
+      )}
+
 
       {/* Search + Sort + Filter */}
       <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -1485,7 +1647,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2026 Asdep PKRL Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2026 Asdep Pengelolaan Kelautan dan Ruang Laut, Deputi Sumber Daya Maritim
       </div>
     </div>
   );
