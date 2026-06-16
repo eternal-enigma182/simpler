@@ -66,7 +66,7 @@ const TAHAPAN = {
   "RZ KAW":  ["Pembentukan PAK","Dokumen Awal","Dokumen Antara","Dokumen Final","Legal Drafting","Pembahasan PAK","Harmonisasi","Penetapan Perpres"],
   "RTR KSN": ["Dokumen Awal","Dokumen Antara","Dokumen Final","Konsepsi Matek Ruang Perairan","Persiapan Penyusunan","Pengumpulan Data & Informasi","Pengolahan Data dan Analisis","Konsepsi Matek Ruang Darat","Integrasi Muatan Materi Teknis","Persub","PAK","Harmonisasi","Peromohonan Paraf K/L","Penetapan Perpres"],
   "RTRWP":   ["Matek Ruang Darat","Pertek MKP","Proses Integrasi","Validasi KLHS","Pembahasan Ranperda di DPRD","Lintas Sektor","Persub","Persetujuan DPRD","Evaluasi Dagri","Pentapan Perda"],
-  "RTRWN":   ["Persiapan Penyusunan Matek RTRL","Pengumpulan Data & Informasi Matek RTRL","Pengolahan Data dan Analisis Matek RTRL","Konsepsi Matek Ruang Laut Matek RTRL","Persiapan Penyusunan Matek RTRWN","Pengumpulan Data & Informasi Matek RTRWN","Pengolahan Data dan Analisis Matek RTRWN","Konsepsi Matek Ruang Darat Matek RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
+  "RTRWN":   ["Penyusunan Materi Teknis RTRL & RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
 };
 
 function getStepState(status) {
@@ -77,7 +77,6 @@ function getStepState(status) {
 
 // Group steps: gabungkan beberapa step jadi 1 grup visual
 // RTRWP: "Matek Ruang Darat" + "Pertek MKP" -> "Materi Teknis Ruang Darat dan Laut" (2 sub)
-// RTRWN: 4 step RTRL + 4 step RTRWN -> "Penyusunan Materi Teknis RTRL dan RTRWN" (2 kelompok x 4 sub)
 function groupSteps(steps){
   const groups = [];
   let skip = 0;
@@ -96,26 +95,6 @@ function groupSteps(steps){
         idxLaut: i+1,
       });
       skip = 1;
-      continue;
-    }
-
-    // RTRWN: 4 step RTRL + 4 step RTRWN
-    if(s.nama === "Persiapan Penyusunan Matek RTRL"
-      && steps[i+1]?.nama === "Pengumpulan Data & Informasi Matek RTRL"
-      && steps[i+2]?.nama === "Pengolahan Data dan Analisis Matek RTRL"
-      && steps[i+3]?.nama === "Konsepsi Matek Ruang Laut Matek RTRL"
-      && steps[i+4]?.nama === "Persiapan Penyusunan Matek RTRWN"
-      && steps[i+5]?.nama === "Pengumpulan Data & Informasi Matek RTRWN"
-      && steps[i+6]?.nama === "Pengolahan Data dan Analisis Matek RTRWN"
-      && steps[i+7]?.nama === "Konsepsi Matek Ruang Darat Matek RTRWN"
-    ){
-      groups.push({
-        combinedMulti: true,
-        title: "Penyusunan Materi Teknis RTRL dan RTRWN",
-        groupA: { label:"Materi Teknis RTRL", subSteps:[steps[i],steps[i+1],steps[i+2],steps[i+3]], idxOffset:i },
-        groupB: { label:"Materi Teknis RTRWN", subSteps:[steps[i+4],steps[i+5],steps[i+6],steps[i+7]], idxOffset:i+4 },
-      });
-      skip = 7;
       continue;
     }
 
@@ -1596,6 +1575,7 @@ function AboutTab(){
         <div className="label" style={{marginBottom:10}}>Tentang Aplikasi</div>
         <div style={{fontSize:13,color:C.soft,lineHeight:1.8}}>
           <span style={{display:"inline-flex",alignItems:"center",gap:5,verticalAlign:"middle"}}>
+            <SimplerLogo size={16}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           adalah sebuah aplikasi yang berfungsi sebagai <strong style={{color:C.light}}>dashboard monitoring progres penyelesaian perencanaan ruang laut</strong> yang diinisiasi oleh Deputi Bidang Koordinasi Sumber Daya Maritim, Kementerian Koordinator Bidang Pangan.
@@ -1603,6 +1583,7 @@ function AboutTab(){
         <div style={{marginTop:10,fontSize:13,color:C.soft,lineHeight:1.8}}>
           Aplikasi{" "}
           <span style={{display:"inline-flex",alignItems:"center",gap:4,verticalAlign:"middle"}}>
+            <SimplerLogo size={14}/>
             <strong style={{color:C.light}}>SIMPLER</strong>
           </span>{" "}
           terdiri dari beberapa menu yaitu: <strong style={{color:C.light}}>Status RTR, Produk Hukum, Dasar Hukum, dan Tentang</strong>.
@@ -1647,7 +1628,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2026 Asdep Pengelolaan Kelautan dan Ruang Laut, Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2025 Deputi Sumber Daya Maritim
       </div>
     </div>
   );
