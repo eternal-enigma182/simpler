@@ -66,7 +66,7 @@ const TAHAPAN = {
   "RZ KAW":  ["Pembentukan PAK","Dokumen Awal","Dokumen Antara","Dokumen Final","Legal Drafting","Pembahasan PAK","Harmonisasi","Penetapan Perpres"],
   "RTR KSN": ["Dokumen Awal","Dokumen Antara","Dokumen Final","Konsepsi Matek Ruang Perairan","Persiapan Penyusunan","Pengumpulan Data & Informasi","Pengolahan Data dan Analisis","Konsepsi Matek Ruang Darat","Integrasi Muatan Materi Teknis","Persub","PAK","Harmonisasi","Peromohonan Paraf K/L","Penetapan Perpres"],
   "RTRWP":   ["Matek Ruang Darat","Pertek MKP","Proses Integrasi","Validasi KLHS","Pembahasan Ranperda di DPRD","Lintas Sektor","Persub","Persetujuan DPRD","Evaluasi Dagri","Pentapan Perda"],
-  "RTRWN":   ["Penyusunan Materi Teknis RTRL & RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
+  "RTRWN":   ["Persiapan Penyusunan Matek RTRL","Pengumpulan Data & Informasi Matek RTRL","Pengolahan Data dan Analisis Matek RTRL","Konsepsi Matek Ruang Laut Matek RTRL","Persiapan Penyusunan Matek RTRWN","Pengumpulan Data & Informasi Matek RTRWN","Pengolahan Data dan Analisis Matek RTRWN","Konsepsi Matek Ruang Darat Matek RTRWN","Integrasi Muatan Materi Teknis","Sinkronisasi Muatan RTRWN","Penyusunan RPP RTRWN","Penyusunan Dokumen KLHS","Penetapan Peraturan Pemerintah"],
 };
 
 function getStepState(status) {
@@ -77,6 +77,7 @@ function getStepState(status) {
 
 // Group steps: gabungkan beberapa step jadi 1 grup visual
 // RTRWP: "Matek Ruang Darat" + "Pertek MKP" -> "Materi Teknis Ruang Darat dan Laut" (2 sub)
+// RTRWN: 4 step RTRL + 4 step RTRWN -> "Penyusunan Materi Teknis RTRL dan RTRWN" (2 kelompok x 4 sub)
 function groupSteps(steps){
   const groups = [];
   let skip = 0;
@@ -95,6 +96,26 @@ function groupSteps(steps){
         idxLaut: i+1,
       });
       skip = 1;
+      continue;
+    }
+
+    // RTRWN: 4 step RTRL + 4 step RTRWN
+    if(s.nama === "Persiapan Penyusunan Matek RTRL"
+      && steps[i+1]?.nama === "Pengumpulan Data & Informasi Matek RTRL"
+      && steps[i+2]?.nama === "Pengolahan Data dan Analisis Matek RTRL"
+      && steps[i+3]?.nama === "Konsepsi Matek Ruang Laut Matek RTRL"
+      && steps[i+4]?.nama === "Persiapan Penyusunan Matek RTRWN"
+      && steps[i+5]?.nama === "Pengumpulan Data & Informasi Matek RTRWN"
+      && steps[i+6]?.nama === "Pengolahan Data dan Analisis Matek RTRWN"
+      && steps[i+7]?.nama === "Konsepsi Matek Ruang Darat Matek RTRWN"
+    ){
+      groups.push({
+        combinedMulti: true,
+        title: "Penyusunan Materi Teknis RTRL dan RTRWN",
+        groupA: { label:"Materi Teknis RTRL", subSteps:[steps[i],steps[i+1],steps[i+2],steps[i+3]], idxOffset:i },
+        groupB: { label:"Materi Teknis RTRWN", subSteps:[steps[i+4],steps[i+5],steps[i+6],steps[i+7]], idxOffset:i+4 },
+      });
+      skip = 7;
       continue;
     }
 
@@ -668,18 +689,16 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                   {!isLast&&<div style={{width:1,flex:1,background:C.line,margin:"3px 0"}}/>}
                 </div>
                 <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
-                  <div style={{fontSize:12,fontWeight:600,color:allDone?C.light:C.soft,lineHeight:1.4,marginBottom:8}}>{g.title}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:allDone?C.light:C.soft,lineHeight:1.4,marginBottom:12}}>{g.title}</div>
                   {[g.groupA, g.groupB].map((grp,gi2)=>(
-                    <div key={gi2} style={{marginBottom:gi2===0?10:0}}>
-                      <div style={{fontSize:10,fontWeight:700,color:C.muted,marginBottom:4}}>{grp.label}</div>
-                      <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                        {grp.subSteps.map((sub,si)=>(
-                          <div key={si} style={{display:"flex",alignItems:"flex-start",gap:6}}>
-                            <span style={{fontSize:10,color:C.soft,minWidth:0,flex:"0 0 auto",maxWidth:"45%",lineHeight:1.4}}>{sub.nama}:</span>
-                            <StatusChip st={sub.status}/>
-                          </div>
-                        ))}
-                      </div>
+                    <div key={gi2} style={{marginBottom:gi2===0?14:0}}>
+                      <div style={{fontSize:12,fontWeight:700,color:C.light,marginBottom:8}}>{grp.label}</div>
+                      {grp.subSteps.map((sub,si)=>(
+                        <div key={si} style={{display:"flex",justifyContent:"space-between",gap:10,padding:"8px 0",borderTop:si>0?"1px solid "+C.line:"none"}}>
+                          <span style={{fontSize:11,color:C.soft,flex:1,lineHeight:1.4}}>{sub.nama}</span>
+                          <span style={{fontSize:12,fontWeight:700,color:getStepState(sub.status)==="Selesai"?C.light:C.muted,textAlign:"right",flex:1,lineHeight:1.4}}>{sub.status}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
