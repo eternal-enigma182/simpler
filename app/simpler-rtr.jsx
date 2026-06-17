@@ -699,10 +699,11 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                         {grp.subSteps.map((sub,si)=>{
                           const subState=getStepState(sub.status);
                           const subIcon=subState==="Selesai"?CheckCircle2:subState==="Proses"?Clock:Circle;
+                          const subColor=subState==="Selesai"?{bg:ST.Selesai.l,c:ST.Selesai.c}:subState==="Proses"?{bg:C.amberL,c:C.amber}:{bg:C.skyL,c:C.blue};
                           return(
                           <div key={si} style={{paddingTop:si>0?10:0,borderTop:si>0?"1px solid "+C.line:"none"}}>
                             <div style={{fontSize:11,fontWeight:600,color:C.light,lineHeight:1.4,marginBottom:6}}>{sub.nama}</div>
-                            <span className="status-chip" style={{background:C.skyL, color:C.blue}}>
+                            <span className="status-chip" style={{background:subColor.bg, color:subColor.c}}>
                               <subIcon size={10} strokeWidth={2.5} style={{flexShrink:0, marginTop:1}}/>
                               {sub.status}
                             </span>
