@@ -705,12 +705,6 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                           </div>
                         ))}
                       </div>
-                      {grpDone&&(
-                        <div style={{marginTop:10,padding:"8px 12px",background:ST.Selesai.l,borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
-                          <CheckCircle2 size={13} strokeWidth={2.5} color={ST.Selesai.c}/>
-                          <span style={{fontSize:11,fontWeight:700,color:ST.Selesai.c}}>{grp.label} telah selesai</span>
-                        </div>
-                      )}
                     </div>
                     );
                   })}
