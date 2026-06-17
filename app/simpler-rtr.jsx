@@ -696,23 +696,30 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                     <div key={gi2} style={{marginBottom:14}}>
                       <div style={{fontSize:12,fontWeight:700,color:grpDone?ST.Selesai.c:C.light,marginBottom:8}}>{grp.label}</div>
                       <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                        {grp.subSteps.map((sub,si)=>(
+                        {grp.subSteps.map((sub,si)=>{
+                          const subState=getStepState(sub.status);
+                          const subIcon=subState==="Selesai"?CheckCircle2:subState==="Proses"?Clock:Circle;
+                          return(
                           <div key={si} style={{paddingTop:si>0?10:0,borderTop:si>0?"1px solid "+C.line:"none"}}>
                             <div style={{fontSize:11,fontWeight:600,color:C.light,lineHeight:1.4,marginBottom:6}}>{sub.nama}</div>
-                            <StatusChip st={sub.status}/>
+                            <span className="status-chip" style={{background:C.skyL, color:C.blue}}>
+                              <subIcon size={10} strokeWidth={2.5} style={{flexShrink:0, marginTop:1}}/>
+                              {sub.status}
+                            </span>
                             {sub.tanggal&&<div style={{fontSize:10,color:C.lime,fontWeight:600,marginTop:4}}>📅 {sub.tanggal}</div>}
                             {sub.keterangan&&<div style={{fontSize:11,color:C.muted,marginTop:3}}>{sub.keterangan}</div>}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                     );
                   })}
                   {allDone&&(
-                    <div style={{marginTop:4,padding:"10px 14px",background:ST.Selesai.l,borderRadius:10,display:"flex",alignItems:"center",gap:8,border:"1px solid "+ST.Selesai.dot+"40"}}>
-                      <CheckCircle2 size={15} strokeWidth={2.5} color={ST.Selesai.c}/>
-                      <span style={{fontSize:12,fontWeight:700,color:ST.Selesai.c}}>{g.title} telah selesai</span>
-                    </div>
+                    <span className="status-chip" style={{background:ST.Selesai.l, color:ST.Selesai.c, marginTop:2}}>
+                      <CheckCircle2 size={10} strokeWidth={2.5} style={{flexShrink:0, marginTop:1}}/>
+                      {g.title} telah selesai
+                    </span>
                   )}
                 </div>
               </div>
@@ -1658,7 +1665,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2026 Asdep PKRL Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2026 Asdep Pengelolaan Kelautan dan Ruang Laut, Deputi Sumber Daya Maritim
       </div>
     </div>
   );
