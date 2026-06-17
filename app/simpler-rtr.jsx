@@ -690,9 +690,11 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                 </div>
                 <div style={{flex:1,minWidth:0,paddingBottom:isLast?0:8}}>
                   <div style={{fontSize:13,fontWeight:700,color:allDone?C.light:C.soft,lineHeight:1.4,marginBottom:12}}>{g.title}</div>
-                  {[g.groupA, g.groupB].map((grp,gi2)=>(
-                    <div key={gi2} style={{marginBottom:gi2===0?14:0}}>
-                      <div style={{fontSize:12,fontWeight:700,color:C.light,marginBottom:8}}>{grp.label}</div>
+                  {[g.groupA, g.groupB].map((grp,gi2)=>{
+                    const grpDone = grp.subSteps.every(s=>getStepState(s.status)==="Selesai");
+                    return(
+                    <div key={gi2} style={{marginBottom:14}}>
+                      <div style={{fontSize:12,fontWeight:700,color:grpDone?ST.Selesai.c:C.light,marginBottom:8}}>{grp.label}</div>
                       <div style={{display:"flex",flexDirection:"column",gap:10}}>
                         {grp.subSteps.map((sub,si)=>(
                           <div key={si} style={{paddingTop:si>0?10:0,borderTop:si>0?"1px solid "+C.line:"none"}}>
@@ -703,8 +705,21 @@ function DetailSheet({entry, onEdit, onClose, isAdmin}){
                           </div>
                         ))}
                       </div>
+                      {grpDone&&(
+                        <div style={{marginTop:10,padding:"8px 12px",background:ST.Selesai.l,borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
+                          <CheckCircle2 size={13} strokeWidth={2.5} color={ST.Selesai.c}/>
+                          <span style={{fontSize:11,fontWeight:700,color:ST.Selesai.c}}>{grp.label} telah selesai</span>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
+                  {allDone&&(
+                    <div style={{marginTop:4,padding:"10px 14px",background:ST.Selesai.l,borderRadius:10,display:"flex",alignItems:"center",gap:8,border:"1px solid "+ST.Selesai.dot+"40"}}>
+                      <CheckCircle2 size={15} strokeWidth={2.5} color={ST.Selesai.c}/>
+                      <span style={{fontSize:12,fontWeight:700,color:ST.Selesai.c}}>{g.title} telah selesai</span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
