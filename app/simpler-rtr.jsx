@@ -1666,7 +1666,7 @@ function AboutTab(){
       </div>
 
       <div style={{textAlign:"center",padding:"8px",color:C.muted,fontSize:11}}>
-        SIMPLER v2.0 · © 2026 Asdep Pengelolaan Kelautan dan Ruang Laut, Deputi Sumber Daya Maritim
+        SIMPLER v2.0 · © 2026 - Asdep PKRL Deputi Sumber Daya Maritim
       </div>
     </div>
   );
@@ -1752,6 +1752,12 @@ export default function App(){
 
   function updateEntry(u){setData(p=>p.map(e=>e.id===u.id?u:e));}
   function addEntry(n){setData(p=>[...p,n]);fetchData();}
+  async function deleteEntry(id){
+    if(!confirm("Hapus entri ini beserta semua tahapannya? Tindakan ini tidak dapat dibatalkan.")) return;
+    await supabase.from("steps").delete().eq("entry_id",id);
+    await supabase.from("entries").delete().eq("id",id);
+    setData(p=>p.filter(e=>e.id!==id));
+  }
   async function handleLogout(){await supabase.auth.signOut();setUser(null);setShowDb(false);}
 
   const filteredDb=useMemo(()=>{
@@ -1832,7 +1838,7 @@ export default function App(){
                   return(
                     <motion.div key={e.id} className="entry-card"
                       initial={{opacity:0,scale:.97}} animate={{opacity:1,scale:1}} transition={{delay:Math.min(i*0.03,.3),duration:.25}}
-                      whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}} whileTap={{scale:.98}}
+                      whileHover={{y:-2,boxShadow:"0 6px 20px rgba(54,76,132,0.14)"}}
                       onClick={()=>setDetail(e)}>
                       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
                         <div style={{flex:1,minWidth:0}}><KatChip k={e.kategori}/><div style={{fontSize:14,fontWeight:800,color:C.light,marginTop:6,lineHeight:1.3}}>{e.nama}</div></div>
@@ -1843,6 +1849,13 @@ export default function App(){
                       </div>
                       <StepDots steps={e.steps}/>
                       {next&&<div style={{marginTop:6,fontSize:10,color:C.muted,display:"flex",alignItems:"center",gap:3}}><ChevronRight size={10} strokeWidth={2}/>{next.nama}</div>}
+                      <div style={{marginTop:10,display:"flex",justifyContent:"flex-end"}} onClick={ev=>ev.stopPropagation()}>
+                        <motion.button whileTap={{scale:.85}}
+                          onClick={()=>deleteEntry(e.id)}
+                          style={{background:C.roseL,border:"none",borderRadius:7,padding:"5px 10px",cursor:"pointer",color:C.rose,display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700}}>
+                          <Trash2 size={11} strokeWidth={2}/> Hapus
+                        </motion.button>
+                      </div>
                     </motion.div>
                   );
                 })}
